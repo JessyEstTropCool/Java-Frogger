@@ -80,7 +80,6 @@ public class Board extends JPanel implements ActionListener {
             appleY = GetRandomCoordinate();
             appleList.add(new Apple(appleX, appleY));
         }
-            
 
         timer = new Timer(DELAY, this);
         timer.start();
