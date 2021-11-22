@@ -17,35 +17,31 @@ import java.util.HashMap;
 
 public class Board extends JPanel implements ActionListener {
 
+    private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
+
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
     private final int DOT_SIZE = 10;
     private final int RAND_POS = 29;
     private final int DELAY = 140;
 
-    private int pos_x;
-    private int pos_y;
-    
-    private int coinCounter;
-    private int insectCounter;
-    //private ArrayList<Coin> coinList ;
-    private ArrayList<FixedGameElement> fixedGameElementList ;
-    HashMap<String, ImageIcon> fixedGameElementImageMap ;
+    private int posX;
+    private int posY;
 
-    private boolean leftDirection = false;
-    private boolean rightDirection = false;
-    private boolean upDirection = false;
-    private boolean downDirection = false;
+    private int coinCount;
+    private int bugCount;
+    private ArrayList<Collectible> collectibleList;
+    private HashMap<String, Image> collectibleImages;
+
+    private int Direction;
     private boolean inGame = true;
 
     private Timer timer;
-    private Image ball;
-    private Image coin;
     private Image head;
-    
+
     private int score;
-    private int void_x = -1*B_WIDTH;
-    private int void_y = -1*B_HEIGHT;
+    private int voidX = -1*B_WIDTH;
+    private int voidY = -1*B_HEIGHT;
 
     public Board() {
         
@@ -64,39 +60,35 @@ public class Board extends JPanel implements ActionListener {
     }
 
     private void loadImages() {
-    
-        fixedGameElementImageMap = new HashMap<String, ImageIcon>();
+
+        collectibleImages = new HashMap<String, Image>();
 
         ImageIcon iic = new ImageIcon(Coin.getPathToImage());
-        //coinImage = iic.getImage();
-        fixedGameElementImageMap.put("coin", iic);
-        
-        ImageIcon iii = new ImageIcon(Insect.getPathToImage());
-        //insectImage = iii.getImage();
-        fixedGameElementImageMap.put("insect", iii);
+        collectibleImages.put("Coin", iic.getImage());
+
+        ImageIcon iib = new ImageIcon(Bug.getPathToImage());
+        collectibleImages.put("Bug", iib.getImage());
 
         ImageIcon iih = new ImageIcon("head.png");
         head = iih.getImage();
     }
 
     private void initGame() {
+
+        score = 0;
+
+        posX = B_WIDTH / 2;
+        posY = B_HEIGHT / 2;
         
-        score = 0 ;
-        
-        pos_x = B_WIDTH/2;
-        pos_y = B_HEIGHT/2;
-        
-        coinCounter = 3;
-        insectCounter = 2;
-        fixedGameElementList = new ArrayList<FixedGameElement>();
-        
-        for(int i = 0; i < coinCounter ; i++){
-            fixedGameElementList.add(new Coin(getRandomCoordinate(), getRandomCoordinate()));
-        }
-        
-        for(int i = 0; i < insectCounter ; i++){
-            fixedGameElementList.add(new Insect(getRandomCoordinate(), getRandomCoordinate()));
-        }
+        coinCount = 3;
+        bugCount = 2;
+        collectibleList = new ArrayList<Collectible>();
+
+        for ( int compt = 0; compt < coinCount; compt++ )
+            collectibleList.add(new Coin(GetRandomCoordinate(), GetRandomCoordinate()));
+
+        for ( int compt = 0; compt < bugCount; compt++ )
+            collectibleList.add(new Bug(GetRandomCoordinate(), GetRandomCoordinate()));
 
         timer = new Timer(DELAY, this);
         timer.start();
@@ -113,11 +105,12 @@ public class Board extends JPanel implements ActionListener {
         
         if (inGame) {
 
-            for(FixedGameElement elem: fixedGameElementList){               
-                g.drawImage(fixedGameElementImageMap.get(elem.getType()).getImage(), elem.getPosX(), elem.getPosY(), this);
-            }      
+            for ( Collectible app : collectibleList )
+            {
+                g.drawImage(collectibleImages.get(app.getType()), app.getPosX(), app.getPosY(), this);
+            }
             
-            g.drawImage(head, pos_x, pos_y, this);
+            g.drawImage(head, posX, posY, this);
 
             Toolkit.getDefaultToolkit().sync();
 
@@ -138,63 +131,67 @@ public class Board extends JPanel implements ActionListener {
         g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
     }
 
-    private void checkFixedGameElementCollision() {
+    private void checkCollectibles() {
 
-        for(FixedGameElement elem: fixedGameElementList){
-            if ((pos_x == elem.getPosX()) && (pos_y == elem.getPosY())){
-                elem.setPosX(void_x);
-                elem.setPosY(void_y);
+        for (Collectible coll : collectibleList)
+        {
+            if ((posX == coll.getPosX()) && (posY == coll.getPosY())) {
+    
+                coll.setPosX(voidX);
+                coll.setPosY(voidY);
+
+                coll.triggerAction(this);
                 
-                elem.triggerAction(this);
-                
-                System.out.println(coinCounter);
-                System.out.println(score);
+                System.out.println("Pièces restantes : "+coinCount);
+                System.out.println("Score : "+score);
             }
-        }    
+        }
     }
-    
-    public void incScore(int valueToIncrease){
-        score += valueToIncrease;
-    } 
-    
-    public void decreaseCoinAmount(){
-        coinCounter -=1;
+
+    public void incScore(int amount)
+    {
+        score += amount;
+    }
+
+    public void decCoinCount()
+    {
+        coinCount--;
     }
 
     private void move() {
 
-        if (leftDirection) {
-            pos_x -= DOT_SIZE;
+        if (Direction == LEFT) {
+            posX -= DOT_SIZE;
         }
 
-        if (rightDirection) {
-            pos_x += DOT_SIZE;
+        if (Direction == RIGHT) {
+            posX += DOT_SIZE;
         }
 
-        if (upDirection) {
-            pos_y -= DOT_SIZE;
+        if (Direction == UP) {
+            posY -= DOT_SIZE;
         }
 
-        if (downDirection) {
-            pos_y += DOT_SIZE;
+        if (Direction == DOWN) {
+            posY += DOT_SIZE;
         }
     }
 
     private void checkCollision() {
 
-        if (pos_y >= B_HEIGHT) {
+        if (posY >= B_HEIGHT) {
             inGame = false;
         }
 
-        if (pos_y < 0) {
+        if (posY < 0) {
             inGame = false;
         }
 
-        if (pos_x >= B_WIDTH) {
+        if (posX >= B_WIDTH) {
             inGame = false;
         }
 
-        if (pos_x < 0) {
+        if (posX < 0) {
             inGame = false;
         }
         
@@ -202,11 +199,11 @@ public class Board extends JPanel implements ActionListener {
             timer.stop();
         }
     }
-    
-    private int getRandomCoordinate() {
+
+    private int GetRandomCoordinate() {
 
         int r = (int) (Math.random() * RAND_POS);
-        return ((r * DOT_SIZE));
+        return (r * DOT_SIZE);
     }
 
     @Override
@@ -214,7 +211,7 @@ public class Board extends JPanel implements ActionListener {
 
         if (inGame) {
 
-            checkFixedGameElementCollision();
+            checkCollectibles();
             checkCollision();
         }
 
@@ -229,31 +226,19 @@ public class Board extends JPanel implements ActionListener {
             int key = e.getKeyCode();
 
             if (key == KeyEvent.VK_LEFT) {
-                leftDirection = true;
-                upDirection = false;
-                downDirection = false;
-                rightDirection = false;
+                Direction = LEFT;
             }
 
             if (key == KeyEvent.VK_RIGHT) {
-                rightDirection = true;
-                upDirection = false;
-                downDirection = false;
-                leftDirection = false;
+                Direction = RIGHT;
             }
 
             if (key == KeyEvent.VK_UP) {
-                upDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                downDirection = false;
+                Direction = UP;
             }
 
-            if (key == KeyEvent.VK_DOWN){
-                downDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                upDirection = false;
+            if (key == KeyEvent.VK_DOWN) {
+                Direction = DOWN;
             }
 
             move();

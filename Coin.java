@@ -1,25 +1,19 @@
+public class Coin extends Collectible
+{
+    public Coin(int posX, int posY)
+    {
+        super(posX, posY);
+    }
 
-public class Coin extends FixedGameElement {
-    
-    public Coin(int pos_x, int pos_y) {  
-        super(pos_x, pos_y);
-    }
-    
-    public static String getPathToImage(){
-        return "coin.png";
-    }
-    
-    public String getType(){
-        return "coin";
-    }
-    
-    public void triggerAction(Board board){
+    public static String getPathToImage() { return "coin.png"; }
+
+    @Override
+    public String getType() { return "Coin"; }
+
+    @Override
+    public void triggerAction(Board board)
+    {
         board.incScore(1);
-        board.decreaseCoinAmount();
+        board.decCoinCount();
     }
-    
 }
-
-
-
-

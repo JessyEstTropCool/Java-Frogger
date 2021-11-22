@@ -1,11 +1,9 @@
-public class Apple 
+public abstract class Collectible 
 {
     private int posX;
     private int posY;
 
-    private String pathToImage = "apple.png";
-
-    public Apple(int posX, int posY)
+    public Collectible(int posX, int posY)
     {
         this.posX = posX;
         this.posY = posY;
@@ -17,5 +15,6 @@ public class Apple
     public int getPosY() { return posY; }
     public void setPosY(int posY) { this.posY = posY; }
 
-    public String getPathToImage() { return pathToImage; }
+    public abstract String getType();
+    public abstract void triggerAction(Board board);
 }
