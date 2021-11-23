@@ -21,12 +21,14 @@ public class Board extends JPanel implements ActionListener {
 
     private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
     private final String MEDIA_PATH = "Images/";
-
-    private final int B_WIDTH = 300;
-    private final int B_HEIGHT = 300;
     private final int DOT_SIZE = 10;
-    private final int RAND_POS = 29;
-    private final int DELAY = 140;
+    private final int GRID_WIDTH = 30;
+    private final int GRID_HEIGHT = 30;
+
+    private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
+    private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
+    private final int RAND_POS = GRID_WIDTH - 1;
+    private final int DELAY = 100;
 
     private final Color BACKCOLOR = new ColorUIResource(0, 128, 0);
     private final Color FORECOLOR = Color.WHITE;
@@ -37,6 +39,7 @@ public class Board extends JPanel implements ActionListener {
     private int coinCount;
     private int bugCount;
     private ArrayList<Collectible> collectibleList;
+    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, LEFT);
 
     private int direction;
     private int level = 0;
@@ -96,6 +99,9 @@ public class Board extends JPanel implements ActionListener {
 
         ii = new ImageIcon(MEDIA_PATH+"headRight.png");
         spritesMap.put(Integer.toString(RIGHT), ii.getImage());
+
+        ii = new ImageIcon(MEDIA_PATH+"head.png");
+        spritesMap.put("testVoit", ii.getImage());
     }
 
     private void setVariables()
@@ -168,7 +174,7 @@ public class Board extends JPanel implements ActionListener {
             
             g.drawImage(spritesMap.get(Integer.toString(direction)), posX, posY, this);
 
-            
+            g.drawImage(spritesMap.get("testVoit"), testVoit.getPosX(), testVoit.getPosY(), this);
 
             g.setFont(hudFont);
             g.setColor(FORECOLOR);
@@ -189,7 +195,7 @@ public class Board extends JPanel implements ActionListener {
 
     private void prompt(Graphics g, String prompt)
     {
-        Font small = new Font("Helvetica", Font.BOLD, 14);
+        Font small = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
         FontMetrics metr = getFontMetrics(small);
 
         g.setColor(Color.BLACK);
@@ -271,6 +277,29 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    private void moveVoiture()
+    {
+        switch (testVoit.getDirection())
+        {
+            case LEFT:
+                testVoit.setPosX(testVoit.getPosX() - DOT_SIZE);
+                if (testVoit.getPosX() < 0) testVoit.setPosX(B_WIDTH);
+                break;
+
+            case RIGHT:
+                posX += DOT_SIZE;
+                break;
+
+            case UP:
+                posY -= DOT_SIZE;
+                break;
+
+            case DOWN:
+                posY += DOT_SIZE;
+            break;
+        }
+    }
+
     private void checkCollision() {
 
         if (posY >= B_HEIGHT) {
@@ -308,6 +337,7 @@ public class Board extends JPanel implements ActionListener {
 
             checkCollision();
             checkCollectibles();
+            moveVoiture();
         }
 
         repaint();
