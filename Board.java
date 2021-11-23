@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.plaf.ColorUIResource;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -26,23 +28,27 @@ public class Board extends JPanel implements ActionListener {
     private final int RAND_POS = 29;
     private final int DELAY = 140;
 
+    private final Color BACKCOLOR = new ColorUIResource(0, 128, 0);
+    private final Color FORECOLOR = Color.WHITE;
+
     private int posX;
     private int posY;
 
     private int coinCount;
     private int bugCount;
     private ArrayList<Collectible> collectibleList;
-    private HashMap<String, Image> collectibleImages;
 
-    private int Direction;
-    private int level = -1;
+    private int direction;
+    private int level = 0;
     private boolean inGame = false;
     private boolean spawnedGoal = false;
 
-    private int[] levels = { 3, 7, 11 };
+    private int[] levels = { 1, 2, 3 };
 
-    private Timer timer;
-    private Image head;
+    private Timer gameTimer;
+    private Timer introTimer;
+    private HashMap<String, Image> spritesMap;
+    private Font hudFont;
 
     private int score = 0;
     private int voidX = -1*B_WIDTH;
@@ -56,44 +62,58 @@ public class Board extends JPanel implements ActionListener {
     private void initBoard() {
 
         addKeyListener(new TAdapter());
-        setBackground(Color.GREEN);
+        setBackground(BACKCOLOR);
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         loadImages();
+        setVariables();
         initGame();
     }
 
     private void loadImages() {
 
-        collectibleImages = new HashMap<String, Image>();
+        spritesMap = new HashMap<String, Image>();
+        ImageIcon ii;
 
-        ImageIcon iic = new ImageIcon(MEDIA_PATH+Coin.getPathToImage());
-        collectibleImages.put("Coin", iic.getImage());
+        ii = new ImageIcon(MEDIA_PATH+Coin.getPathToImage());
+        spritesMap.put("Coin", ii.getImage());
 
-        ImageIcon iib = new ImageIcon(MEDIA_PATH+Bug.getPathToImage());
-        collectibleImages.put("Bug", iib.getImage());
+        ii = new ImageIcon(MEDIA_PATH+Bug.getPathToImage());
+        spritesMap.put("Bug",ii.getImage());
 
-        ImageIcon iig = new ImageIcon(MEDIA_PATH+Goal.getPathToImage());
-        collectibleImages.put("Goal", iig.getImage());
+        ii = new ImageIcon(MEDIA_PATH+Goal.getPathToImage());
+        spritesMap.put("Goal", ii.getImage());
 
-        ImageIcon iih = new ImageIcon(MEDIA_PATH+"head.png");
-        head = iih.getImage();
+        ii = new ImageIcon(MEDIA_PATH+"headUp.png");
+        spritesMap.put(Integer.toString(UP), ii.getImage());
+
+        ii = new ImageIcon(MEDIA_PATH+"headDown.png");
+        spritesMap.put(Integer.toString(DOWN), ii.getImage());
+
+        ii = new ImageIcon(MEDIA_PATH+"headLeft.png");
+        spritesMap.put(Integer.toString(LEFT), ii.getImage());
+
+        ii = new ImageIcon(MEDIA_PATH+"headRight.png");
+        spritesMap.put(Integer.toString(RIGHT), ii.getImage());
+    }
+
+    private void setVariables()
+    {
+        hudFont = new Font("Helvetica", Font.BOLD, DOT_SIZE);
+
+        gameTimer = new Timer(DELAY, this);
+        introTimer = new Timer(2000, loadNextLevel);
+        introTimer.setRepeats(false); 
     }
 
     private void initGame() {
 
-        level++;
-
         System.out.println("We initin' " + level);
 
-        timer = new Timer(2000, loadNextLevel);
-        timer.setRepeats(false);
-        timer.start();
+        introTimer.start();
 
         repaint();
-
-        //loadNextLevel.actionPerformed(null);
     }
 
     private ActionListener loadNextLevel = new ActionListener()
@@ -125,8 +145,8 @@ public class Board extends JPanel implements ActionListener {
     private void startLevel()
     {
         System.out.println("We startin' " + level);
-        timer = new Timer(DELAY, this);
-        timer.start();
+        introTimer.stop();
+        gameTimer.start();
         repaint();
     }
 
@@ -141,49 +161,43 @@ public class Board extends JPanel implements ActionListener {
         
         if (inGame) {
 
-            Font hudFont = new Font("Helvetica", Font.BOLD, DOT_SIZE);
-            g.setFont(hudFont);
-            g.setColor(Color.WHITE);
-            g.drawString("Score : " + score, 0, DOT_SIZE);
-
             for ( Collectible app : collectibleList )
             {
-                g.drawImage(collectibleImages.get(app.getType()), app.getPosX(), app.getPosY(), this);
+                g.drawImage(spritesMap.get(app.getType()), app.getPosX(), app.getPosY(), this);
             }
             
-            g.drawImage(head, posX, posY, this);
+            g.drawImage(spritesMap.get(Integer.toString(direction)), posX, posY, this);
+
+            
+
+            g.setFont(hudFont);
+            g.setColor(FORECOLOR);
+            g.drawString("Score : " + score, 0, DOT_SIZE);
+
+            g.drawString("Niveau " + (level + 1), B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau XX"), DOT_SIZE);
 
             Toolkit.getDefaultToolkit().sync();
 
         } else {
 
-            if ( level < levels.length ) nextLevel(g);
-            else gameOver(g);
+            if ( level < levels.length ) prompt(g, "Niveau " + (level + 1));
+            else prompt(g, "Game Over");
 
             Toolkit.getDefaultToolkit().sync();
         }        
     }
 
-    private void nextLevel(Graphics g)
+    private void prompt(Graphics g, String prompt)
     {
-        String msg = "Niveau " + (level + 1);
         Font small = new Font("Helvetica", Font.BOLD, 14);
         FontMetrics metr = getFontMetrics(small);
 
-        g.setColor(Color.white);
-        g.setFont(small);
-        g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
-    }
-
-    private void gameOver(Graphics g) {
-        
-        String msg = "Game Over";
-        Font small = new Font("Helvetica", Font.BOLD, 14);
-        FontMetrics metr = getFontMetrics(small);
+        g.setColor(Color.BLACK);
+        g.fillRect(0, B_HEIGHT / 2 - 3 * DOT_SIZE, B_WIDTH, 5 * DOT_SIZE);
 
         g.setColor(Color.white);
         g.setFont(small);
-        g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
+        g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, B_HEIGHT / 2);
     }
 
     private void checkCollectibles() {
@@ -215,8 +229,12 @@ public class Board extends JPanel implements ActionListener {
     public void triggerGameOver()
     {
         System.out.println("We stoppin'");
+
         inGame = false;
-        timer.stop();
+        gameTimer.stop();
+
+        level++;
+
         if ( level < levels.length ) initGame();
         else repaint();
     }
@@ -233,20 +251,23 @@ public class Board extends JPanel implements ActionListener {
 
     private void move() {
 
-        if (Direction == LEFT) {
-            posX -= DOT_SIZE;
-        }
+        switch (direction)
+        {
+            case LEFT:
+                posX -= DOT_SIZE;
+                break;
 
-        if (Direction == RIGHT) {
-            posX += DOT_SIZE;
-        }
+            case RIGHT:
+                posX += DOT_SIZE;
+                break;
 
-        if (Direction == UP) {
-            posY -= DOT_SIZE;
-        }
+            case UP:
+                posY -= DOT_SIZE;
+                break;
 
-        if (Direction == DOWN) {
-            posY += DOT_SIZE;
+            case DOWN:
+                posY += DOT_SIZE;
+            break;
         }
     }
 
@@ -269,7 +290,8 @@ public class Board extends JPanel implements ActionListener {
         }
         
         if (!inGame) {
-            timer.stop();
+            triggerGameOver();
+            System.out.println("yoooo");
         }
     }
 
@@ -284,8 +306,8 @@ public class Board extends JPanel implements ActionListener {
 
         if (inGame) {
 
-            checkCollectibles();
             checkCollision();
+            checkCollectibles();
         }
 
         repaint();
@@ -299,19 +321,19 @@ public class Board extends JPanel implements ActionListener {
             int key = e.getKeyCode();
 
             if (key == KeyEvent.VK_LEFT) {
-                Direction = LEFT;
+                direction = LEFT;
             }
 
             if (key == KeyEvent.VK_RIGHT) {
-                Direction = RIGHT;
+                direction = RIGHT;
             }
 
             if (key == KeyEvent.VK_UP) {
-                Direction = UP;
+                direction = UP;
             }
 
             if (key == KeyEvent.VK_DOWN) {
-                Direction = DOWN;
+                direction = DOWN;
             }
 
             move();
