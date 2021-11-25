@@ -39,7 +39,7 @@ public class Board extends JPanel implements ActionListener {
     private int coinCount;
     private int bugCount;
     private ArrayList<Collectible> collectibleList;
-    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, LEFT);
+    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, DOT_SIZE, DOT_SIZE, LEFT);
 
     private int direction;
     private int level = 0;
@@ -180,7 +180,7 @@ public class Board extends JPanel implements ActionListener {
             g.setColor(FORECOLOR);
             g.drawString("Score : " + score, 0, DOT_SIZE);
 
-            g.drawString("Niveau " + (level + 1), B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau XX"), DOT_SIZE);
+            g.drawString("Niveau " + (level + 1), B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X"), DOT_SIZE);
 
             Toolkit.getDefaultToolkit().sync();
 
@@ -224,6 +224,8 @@ public class Board extends JPanel implements ActionListener {
                 }
             }
         }
+
+        if ( testVoit.inCar(posX, posY) ) System.out.println("Aïeeeeeuh");
 
         if ( !spawnedGoal && coinCount <= 0 ) 
         {
