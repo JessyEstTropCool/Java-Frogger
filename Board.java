@@ -30,13 +30,14 @@ public class Board extends JPanel implements ActionListener {
     private final int RAND_POS = GRID_WIDTH - 1;
     private final int DELAY = 100;
 
-    private final Color BACKCOLOR = new ColorUIResource(32, 128, 0);
+    private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
 
     private final String[] IMAGE_FILENAMES = { 
         Coin.getPathToImage(), 
         Bug.getPathToImage(), 
         Goal.getPathToImage(), 
+        "goalDown.png", 
         "headUp.png", 
         "headDown.png", 
         "headLeft.png", 
@@ -47,6 +48,7 @@ public class Board extends JPanel implements ActionListener {
         "Coin", 
         "Bug", 
         "Goal", 
+        "GoalDown",
         Integer.toString(UP),
         Integer.toString(DOWN), 
         Integer.toString(LEFT), 
@@ -171,6 +173,8 @@ public class Board extends JPanel implements ActionListener {
     private void doDrawing(Graphics g) {
         
         if (inGame) {
+
+            if (!spawnedGoal) g.drawImage(spritesMap.get("GoalDown"), B_WIDTH / 2, 0, this);
 
             for ( Collectible app : collectibleList )
             {
