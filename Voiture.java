@@ -5,14 +5,16 @@ public class Voiture
     private int width;
     private int height;
     private int direction;
+    private double speed;
 
-    public Voiture(int posX, int posY, int width, int height, int direction)
+    public Voiture(int posX, int posY, int width, int height, int direction, double speed)
     {
         this.posX = posX;
         this.posY = posY;
         this.width = width;
         this.height = height;
         this.direction = direction;
+        this.speed = speed;
     }
 
     public boolean inCar(int X, int Y)
@@ -28,4 +30,7 @@ public class Voiture
 
     public int getDirection() { return direction; }
     public void setDirection(int newDir) { this.direction = newDir; }
+
+    public double getSpeed() { return speed; }
+    public void setSpeed(double speed) { this.speed = speed; }
 }

@@ -25,6 +25,27 @@ public class Board extends JPanel implements ActionListener {
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
 
+    private final String[] IMAGE_FILENAMES = { 
+        Coin.getPathToImage(), 
+        Bug.getPathToImage(), 
+        Goal.getPathToImage(), 
+        "headUp.png", 
+        "headDown.png", 
+        "headLeft.png", 
+        "headRight.png", 
+        "head.png"
+    };
+    private final String[] IMAGE_KEYS = { 
+        "Coin", 
+        "Bug", 
+        "Goal", 
+        Integer.toString(UP),
+        Integer.toString(DOWN), 
+        Integer.toString(LEFT), 
+        Integer.toString(RIGHT), 
+        "testVoit" 
+    };
+
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
     private final int RAND_POS = GRID_WIDTH - 1;
@@ -39,7 +60,7 @@ public class Board extends JPanel implements ActionListener {
     private int coinCount;
     private int bugCount;
     private ArrayList<Collectible> collectibleList;
-    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, DOT_SIZE, DOT_SIZE, LEFT);
+    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, DOT_SIZE, DOT_SIZE, LEFT, 0.5);
 
     private int direction;
     private int level = 0;
@@ -79,29 +100,11 @@ public class Board extends JPanel implements ActionListener {
         spritesMap = new HashMap<String, Image>();
         ImageIcon ii;
 
-        ii = new ImageIcon(MEDIA_PATH+Coin.getPathToImage());
-        spritesMap.put("Coin", ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+Bug.getPathToImage());
-        spritesMap.put("Bug",ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+Goal.getPathToImage());
-        spritesMap.put("Goal", ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+"headUp.png");
-        spritesMap.put(Integer.toString(UP), ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+"headDown.png");
-        spritesMap.put(Integer.toString(DOWN), ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+"headLeft.png");
-        spritesMap.put(Integer.toString(LEFT), ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+"headRight.png");
-        spritesMap.put(Integer.toString(RIGHT), ii.getImage());
-
-        ii = new ImageIcon(MEDIA_PATH+"head.png");
-        spritesMap.put("testVoit", ii.getImage());
+        for ( int compt = 0; compt < IMAGE_FILENAMES.length; compt++ )
+        {
+            ii = new ImageIcon(MEDIA_PATH+IMAGE_FILENAMES[compt]);
+            spritesMap.put(IMAGE_KEYS[compt], ii.getImage());
+        }
     }
 
     private void setVariables()
@@ -132,7 +135,7 @@ public class Board extends JPanel implements ActionListener {
             inGame = true;
 
             posX = B_WIDTH / 2;
-            posY = B_HEIGHT / 2;
+            posY = B_HEIGHT - DOT_SIZE;
             
             coinCount = levels[level];
             bugCount = levels[level] / 2 + 1;
@@ -284,7 +287,7 @@ public class Board extends JPanel implements ActionListener {
         switch (testVoit.getDirection())
         {
             case LEFT:
-                testVoit.setPosX(testVoit.getPosX() - DOT_SIZE);
+                testVoit.setPosX(testVoit.getPosX() - (int)(DOT_SIZE * testVoit.getSpeed()));
                 if (testVoit.getPosX() < 0) testVoit.setPosX(B_WIDTH);
                 break;
 
