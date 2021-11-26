@@ -25,6 +25,14 @@ public class Board extends JPanel implements ActionListener {
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
 
+    private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
+    private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
+    private final int RAND_POS = GRID_WIDTH - 1;
+    private final int DELAY = 100;
+
+    private final Color BACKCOLOR = new ColorUIResource(32, 128, 0);
+    private final Color FORECOLOR = Color.WHITE;
+
     private final String[] IMAGE_FILENAMES = { 
         Coin.getPathToImage(), 
         Bug.getPathToImage(), 
@@ -46,14 +54,6 @@ public class Board extends JPanel implements ActionListener {
         "testVoit" 
     };
 
-    private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
-    private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
-    private final int RAND_POS = GRID_WIDTH - 1;
-    private final int DELAY = 100;
-
-    private final Color BACKCOLOR = new ColorUIResource(0, 128, 0);
-    private final Color FORECOLOR = Color.WHITE;
-
     private int posX;
     private int posY;
 
@@ -73,6 +73,7 @@ public class Board extends JPanel implements ActionListener {
     private Timer introTimer;
     private HashMap<String, Image> spritesMap;
     private Font hudFont;
+    private FontMetrics hudMetrics;
 
     private int score = 0;
     private int voidX = -1*B_WIDTH;
@@ -110,6 +111,7 @@ public class Board extends JPanel implements ActionListener {
     private void setVariables()
     {
         hudFont = new Font("Helvetica", Font.BOLD, DOT_SIZE);
+        hudMetrics = getFontMetrics(hudFont);
 
         gameTimer = new Timer(DELAY, this);
         introTimer = new Timer(2000, loadNextLevel);
@@ -189,14 +191,15 @@ public class Board extends JPanel implements ActionListener {
 
         } else {
 
-            if ( level < levels.length ) prompt(g, "Niveau " + (level + 1));
-            else prompt(g, "Game Over");
+            if ( level == -1 ) prompt(g, "Game Over", "Score : "+score);
+            else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1), "");
+            else prompt(g, "Fin de jeu", "Score : "+score);
 
             Toolkit.getDefaultToolkit().sync();
         }        
     }
 
-    private void prompt(Graphics g, String prompt)
+    private void prompt(Graphics g, String prompt, String subPrompt)
     {
         Font small = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
         FontMetrics metr = getFontMetrics(small);
@@ -207,6 +210,12 @@ public class Board extends JPanel implements ActionListener {
         g.setColor(Color.white);
         g.setFont(small);
         g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, B_HEIGHT / 2);
+
+        if ( subPrompt != "" ) 
+        {
+            g.setFont(hudFont);
+            g.drawString(subPrompt, (B_WIDTH - hudMetrics.stringWidth(subPrompt)) / 2, B_HEIGHT / 2 + (int)(DOT_SIZE * 1.5));
+        }
     }
 
     private void checkCollectibles() {
@@ -228,7 +237,7 @@ public class Board extends JPanel implements ActionListener {
             }
         }
 
-        if ( testVoit.inCar(posX, posY) ) System.out.println("Aïeeeeeuh");
+        if ( testVoit.inCar(posX, posY) ) triggerGameOver();
 
         if ( !spawnedGoal && coinCount <= 0 ) 
         {
@@ -237,9 +246,21 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    public void triggerGameOver()
+    private void triggerGameOver()
     {
-        System.out.println("We stoppin'");
+        System.out.println("We losin' ");
+
+        inGame = false;
+        gameTimer.stop();
+
+        level = -1;
+
+        repaint();
+    }
+
+    public void triggerLevelEnd()
+    {
+        System.out.println("We stoppin' "+level);
 
         inGame = false;
         gameTimer.stop();
@@ -324,7 +345,7 @@ public class Board extends JPanel implements ActionListener {
         }
         
         if (!inGame) {
-            triggerGameOver();
+            triggerLevelEnd();
             System.out.println("yoooo");
         }
     }

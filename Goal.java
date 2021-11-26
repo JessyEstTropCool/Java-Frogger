@@ -13,6 +13,6 @@ public class Goal extends Collectible
     @Override
     public void triggerAction(Board board)
     {
-        board.triggerGameOver();
+        board.triggerLevelEnd();
     }
 }
