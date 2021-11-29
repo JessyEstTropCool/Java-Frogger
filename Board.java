@@ -19,19 +19,26 @@ import java.util.HashMap;
 
 public class Board extends JPanel implements ActionListener {
 
-    private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
+    //Paramêtres
     private final String MEDIA_PATH = "Images/";
     private final int DOT_SIZE = 10;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
+    private final int HUD_HEIGHT = 1;
 
+    //Constantes pour le code
+    private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
+    private final int VERT_OFFSET = HUD_HEIGHT * DOT_SIZE;
+    private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
     private final int RAND_POS = GRID_WIDTH - 1;
     private final int DELAY = 100;
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
+
+    private final int[] LANES = { 5, 6, 7, 8, 9, 10, 15, 16, 17, 22, 23 };
 
     private final String[] IMAGE_FILENAMES = { 
         Coin.getPathToImage(), 
@@ -42,7 +49,11 @@ public class Board extends JPanel implements ActionListener {
         "headDown.png", 
         "headLeft.png", 
         "headRight.png", 
-        "head.png"
+        "car.png",
+        "redCar.png",
+        "purpleCar.png",
+        "blueCar.png",
+        "orangeCar.png"
     };
     private final String[] IMAGE_KEYS = { 
         "Coin", 
@@ -53,7 +64,11 @@ public class Board extends JPanel implements ActionListener {
         Integer.toString(DOWN), 
         Integer.toString(LEFT), 
         Integer.toString(RIGHT), 
-        "testVoit" 
+        "Normal",
+        "Blinky",
+        "Pinky",
+        "Inky",
+        "Clyde"
     };
 
     private int posX;
@@ -62,7 +77,7 @@ public class Board extends JPanel implements ActionListener {
     private int coinCount;
     private int bugCount;
     private ArrayList<Collectible> collectibleList;
-    private Voiture testVoit = new Voiture(B_WIDTH, B_HEIGHT / 2, DOT_SIZE, DOT_SIZE, LEFT, 0.5);
+    private ArrayList<Voiture> voitureList;
 
     private int direction;
     private int level = 0;
@@ -92,7 +107,7 @@ public class Board extends JPanel implements ActionListener {
         setBackground(BACKCOLOR);
         setFocusable(true);
 
-        setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
+        setPreferredSize(new Dimension(B_WIDTH, W_HEIGHT));
         loadImages();
         setVariables();
         initGame();
@@ -102,8 +117,9 @@ public class Board extends JPanel implements ActionListener {
 
         spritesMap = new HashMap<String, Image>();
         ImageIcon ii;
+        int length = ( IMAGE_FILENAMES.length > IMAGE_KEYS.length )? IMAGE_KEYS.length : IMAGE_FILENAMES.length;
 
-        for ( int compt = 0; compt < IMAGE_FILENAMES.length; compt++ )
+        for ( int compt = 0; compt < length; compt++ )
         {
             ii = new ImageIcon(MEDIA_PATH+IMAGE_FILENAMES[compt]);
             spritesMap.put(IMAGE_KEYS[compt], ii.getImage());
@@ -144,6 +160,13 @@ public class Board extends JPanel implements ActionListener {
             coinCount = levels[level];
             bugCount = levels[level] / 2 + 1;
             collectibleList = new ArrayList<Collectible>();
+            voitureList = new ArrayList<Voiture>();
+
+            for ( int i : LANES )
+            {
+                voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+            }
 
             for ( int compt = 0; compt < coinCount; compt++ )
                 collectibleList.add(new Coin(GetRandomCoordinate(), GetRandomCoordinate()));
@@ -174,22 +197,37 @@ public class Board extends JPanel implements ActionListener {
         
         if (inGame) {
 
-            if (!spawnedGoal) g.drawImage(spritesMap.get("GoalDown"), B_WIDTH / 2, 0, this);
-
-            for ( Collectible app : collectibleList )
+            for ( int i : LANES )
             {
-                g.drawImage(spritesMap.get(app.getType()), app.getPosX(), app.getPosY(), this);
+                g.setColor(Color.BLACK);
+                g.fillRect(0, VERT_OFFSET + i * DOT_SIZE, B_WIDTH, DOT_SIZE);
+
+                g.setColor(Color.YELLOW);
+                g.fillRect(0, VERT_OFFSET - 1 + i * DOT_SIZE, B_WIDTH, 2);
+                g.fillRect(0, VERT_OFFSET + (i+1) * DOT_SIZE, B_WIDTH, 2);
             }
+
+            for ( Voiture voit : voitureList )
+            {
+                g.drawImage(spritesMap.get(voit.getType()), voit.getPosX(), voit.getPosY(), this);
+            }
+
+            for ( Collectible coll : collectibleList )
+            {
+                g.drawImage(spritesMap.get(coll.getType()), coll.getPosX(), coll.getPosY(), this);
+            }
+
+            if (!spawnedGoal) g.drawImage(spritesMap.get("GoalDown"), B_WIDTH / 2, VERT_OFFSET, this);
             
             g.drawImage(spritesMap.get(Integer.toString(direction)), posX, posY, this);
 
-            g.drawImage(spritesMap.get("testVoit"), testVoit.getPosX(), testVoit.getPosY(), this);
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, B_WIDTH, VERT_OFFSET);
 
             g.setFont(hudFont);
             g.setColor(FORECOLOR);
-            g.drawString("Score : " + score, 0, DOT_SIZE);
-
-            g.drawString("Niveau " + (level + 1), B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X"), DOT_SIZE);
+            g.drawString("Score : " + score, 0, DOT_SIZE - 1);
+            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, DOT_SIZE - 1);
 
             Toolkit.getDefaultToolkit().sync();
 
@@ -241,12 +279,18 @@ public class Board extends JPanel implements ActionListener {
             }
         }
 
-        if ( testVoit.inCar(posX, posY) ) triggerGameOver();
-
         if ( !spawnedGoal && coinCount <= 0 ) 
         {
-            collectibleList.add(new Goal(B_WIDTH / 2, 0));
+            collectibleList.add(new Goal(B_WIDTH / 2, VERT_OFFSET));
             spawnedGoal = true;
+        }
+
+        for ( Voiture voit : voitureList )
+        {
+            if ( voit.inCar(posX, posY))
+            {
+                triggerGameOver();
+            }
         }
     }
 
@@ -309,35 +353,31 @@ public class Board extends JPanel implements ActionListener {
 
     private void moveVoiture()
     {
-        switch (testVoit.getDirection())
+        for ( Voiture voit : voitureList )
         {
-            case LEFT:
-                testVoit.setPosX(testVoit.getPosX() - (int)(DOT_SIZE * testVoit.getSpeed()));
-                if (testVoit.getPosX() < 0) testVoit.setPosX(B_WIDTH);
-                break;
-
-            case RIGHT:
-                posX += DOT_SIZE;
-                break;
-
-            case UP:
-                posY -= DOT_SIZE;
-                break;
-
-            case DOWN:
-                posY += DOT_SIZE;
-            break;
+            switch (voit.getDirection())
+            {
+                case LEFT:
+                    voit.setPosX(voit.getPosX() - (int)(DOT_SIZE * voit.getSpeed()));
+                    if (voit.getPosX() < 0 - voit.getWidth() ) voit.setPosX(B_WIDTH);
+                    break;
+    
+                case RIGHT:
+                    voit.setPosX(voit.getPosX() + (int)(DOT_SIZE * voit.getSpeed()));
+                    if (voit.getPosX() > B_WIDTH) voit.setPosX(0 - voit.getWidth());
+                    break;
+            }
         }
     }
 
     private void checkCollision() {
 
-        if (posY >= B_HEIGHT) {
-            posY = B_HEIGHT - DOT_SIZE;
+        if (posY >= W_HEIGHT) {
+            posY = W_HEIGHT - DOT_SIZE;
         }
 
-        if (posY < 0) {
-            posY = 0;
+        if (posY < VERT_OFFSET) {
+            posY = VERT_OFFSET;
         }
 
         if (posX >= B_WIDTH) {
@@ -357,7 +397,7 @@ public class Board extends JPanel implements ActionListener {
     private int GetRandomCoordinate() {
 
         int r = (int) (Math.random() * RAND_POS);
-        return (r * DOT_SIZE);
+        return (VERT_OFFSET + r * DOT_SIZE);
     }
 
     @Override

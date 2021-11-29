@@ -28,9 +28,13 @@ public class Voiture
     public int getPosY() { return posY; }
     public void setPosY(int posY) { this.posY = posY; }
 
+    public int getWidth() { return width; }
+
     public int getDirection() { return direction; }
     public void setDirection(int newDir) { this.direction = newDir; }
 
     public double getSpeed() { return speed; }
     public void setSpeed(double speed) { this.speed = speed; }
+
+    public String getType() { return "Normal"; }
 }
