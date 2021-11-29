@@ -287,7 +287,7 @@ public class Board extends JPanel implements ActionListener {
 
         for ( Voiture voit : voitureList )
         {
-            if ( voit.inCar(posX, posY))
+            if ( voit.inCar(posX, posY) || voit.inCar(posX + DOT_SIZE, posY))
             {
                 triggerGameOver();
             }
