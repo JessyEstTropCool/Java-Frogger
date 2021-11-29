@@ -25,6 +25,7 @@ public class Board extends JPanel implements ActionListener {
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
     private final int HUD_HEIGHT = 1;
+    private final int INVINCIBLE_TIME = 10;
 
     //Constantes pour le code
     private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
@@ -43,6 +44,7 @@ public class Board extends JPanel implements ActionListener {
     private final String[] IMAGE_FILENAMES = { 
         Coin.getPathToImage(), 
         Bug.getPathToImage(), 
+        Pill.getPathToImage(), 
         Goal.getPathToImage(), 
         "goalDown.png", 
         "headUp.png", 
@@ -53,41 +55,45 @@ public class Board extends JPanel implements ActionListener {
         "redCar.png",
         "purpleCar.png",
         "blueCar.png",
-        "orangeCar.png"
+        "orangeCar.png",
     };
     private final String[] IMAGE_KEYS = { 
         "Coin", 
         "Bug", 
+        "Pill",
         "Goal", 
         "GoalDown",
         Integer.toString(UP),
         Integer.toString(DOWN), 
         Integer.toString(LEFT), 
         Integer.toString(RIGHT), 
-        "Normal",
+        "Voiture",
         "Blinky",
         "Pinky",
         "Inky",
         "Clyde"
     };
 
-    private int posX;
-    private int posY;
+    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
+
+    //private int posX;
+    //private int posY;
 
     private int coinCount;
     private int bugCount;
-    private ArrayList<Collectible> collectibleList;
+    private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
 
-    private int direction;
+    //private int direction;
     private int level = 0;
     private boolean inGame = false;
     private boolean spawnedGoal = false;
 
-    private int[] levels = { 1, 2, 3 };
+    private final int[] levels = { 1, 2, 3 };
 
     private Timer gameTimer;
     private Timer introTimer;
+    private Timer invincTimer;
     private HashMap<String, Image> spritesMap;
     private Font hudFont;
     private FontMetrics hudMetrics;
@@ -95,6 +101,7 @@ public class Board extends JPanel implements ActionListener {
     private int score = 0;
     private int voidX = -1*B_WIDTH;
     private int voidY = -1*B_HEIGHT;
+    private int invincSeconds = 0;
 
     public Board() {
         
@@ -132,8 +139,11 @@ public class Board extends JPanel implements ActionListener {
         hudMetrics = getFontMetrics(hudFont);
 
         gameTimer = new Timer(DELAY, this);
+
         introTimer = new Timer(2000, loadNextLevel);
         introTimer.setRepeats(false); 
+
+        invincTimer = new Timer(1000, invincibleAction);
     }
 
     private void initGame() {
@@ -154,12 +164,12 @@ public class Board extends JPanel implements ActionListener {
             spawnedGoal = false;
             inGame = true;
 
-            posX = B_WIDTH / 2;
-            posY = B_HEIGHT - DOT_SIZE;
+            frogger.setPosX(B_WIDTH / 2);
+            frogger.setPosY(B_HEIGHT - DOT_SIZE);
             
             coinCount = levels[level];
             bugCount = levels[level] / 2 + 1;
-            collectibleList = new ArrayList<Collectible>();
+            collectibleList = new ArrayList<Entity>();
             voitureList = new ArrayList<Voiture>();
 
             for ( int i : LANES )
@@ -169,10 +179,12 @@ public class Board extends JPanel implements ActionListener {
             }
 
             for ( int compt = 0; compt < coinCount; compt++ )
-                collectibleList.add(new Coin(GetRandomCoordinate(), GetRandomCoordinate()));
+                collectibleList.add(new Coin(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
 
             for ( int compt = 0; compt < bugCount; compt++ )
-                collectibleList.add(new Bug(GetRandomCoordinate(), GetRandomCoordinate()));
+                collectibleList.add(new Bug(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+
+            collectibleList.add(new Pill(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
 
             startLevel();
         }
@@ -212,14 +224,16 @@ public class Board extends JPanel implements ActionListener {
                 g.drawImage(spritesMap.get(voit.getType()), voit.getPosX(), voit.getPosY(), this);
             }
 
-            for ( Collectible coll : collectibleList )
+            for ( Entity coll : collectibleList )
             {
                 g.drawImage(spritesMap.get(coll.getType()), coll.getPosX(), coll.getPosY(), this);
             }
 
             if (!spawnedGoal) g.drawImage(spritesMap.get("GoalDown"), B_WIDTH / 2, VERT_OFFSET, this);
             
-            g.drawImage(spritesMap.get(Integer.toString(direction)), posX, posY, this);
+            g.drawImage(spritesMap.get( Integer.toString( frogger.getDirection() ) ), frogger.getPosX(), frogger.getPosY(), this);
+
+            //HUD
 
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, B_WIDTH, VERT_OFFSET);
@@ -228,6 +242,11 @@ public class Board extends JPanel implements ActionListener {
             g.setColor(FORECOLOR);
             g.drawString("Score : " + score, 0, DOT_SIZE - 1);
             g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, DOT_SIZE - 1);
+
+            for ( int compt = 0 ; compt < invincSeconds ; compt++ )
+            {
+                g.drawImage(spritesMap.get("Pill"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
+            }
 
             Toolkit.getDefaultToolkit().sync();
 
@@ -262,12 +281,11 @@ public class Board extends JPanel implements ActionListener {
 
     private void checkCollectibles() {
 
-        for (Collectible coll : collectibleList)
+        for (Entity coll : collectibleList)
         {
-            if ((posX == coll.getPosX()) && (posY == coll.getPosY())) {
+            if (frogger.Collides(coll)) {
     
-                coll.setPosX(voidX);
-                coll.setPosY(voidY);
+                SendToVoid(coll);
 
                 coll.triggerAction(this);
                 
@@ -281,20 +299,34 @@ public class Board extends JPanel implements ActionListener {
 
         if ( !spawnedGoal && coinCount <= 0 ) 
         {
-            collectibleList.add(new Goal(B_WIDTH / 2, VERT_OFFSET));
+            collectibleList.add(new Goal(B_WIDTH / 2, VERT_OFFSET, DOT_SIZE));
             spawnedGoal = true;
         }
 
         for ( Voiture voit : voitureList )
         {
-            if ( voit.inCar(posX, posY) || voit.inCar(posX + DOT_SIZE, posY))
+            if ( frogger.Collides(voit) )
             {
-                triggerGameOver();
+                if ( invincSeconds > 0 )
+                {
+                    voit.setDirection(-1);
+                    voit.setPosX(voidX);
+                    voit.setPosY(voidY);
+
+                    incScore(2);
+                }
+                else triggerGameOver();
             }
         }
     }
 
-    private void triggerGameOver()
+    public void SendToVoid(Entity victim)
+    {
+        victim.setPosX(voidX);
+        victim.setPosY(voidY);
+    }
+
+    public void triggerGameOver()
     {
         System.out.println("We losin' ");
 
@@ -305,6 +337,29 @@ public class Board extends JPanel implements ActionListener {
 
         repaint();
     }
+
+    public void triggerInvincible()
+    {
+        invincSeconds = INVINCIBLE_TIME;
+        invincTimer.start();
+        frogger.setSpeed(0.5);
+    }
+    
+    private ActionListener invincibleAction = new ActionListener()
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            invincSeconds--;
+            
+            if ( invincSeconds <= 0 )
+            {
+                frogger.setSpeed(1);
+                invincTimer.stop();
+            }
+
+            repaint();
+        }
+    };
 
     public void triggerLevelEnd()
     {
@@ -319,6 +374,11 @@ public class Board extends JPanel implements ActionListener {
         else repaint();
     }
 
+    public boolean isInvincible()
+    {
+        return invincSeconds > 0;
+    }
+
     public void incScore(int amount)
     {
         score += amount;
@@ -331,23 +391,22 @@ public class Board extends JPanel implements ActionListener {
 
     private void move() {
 
-        switch (direction)
-        {
-            case LEFT:
-                posX -= DOT_SIZE;
-                break;
+        frogger.Move(DOT_SIZE, this);
 
-            case RIGHT:
-                posX += DOT_SIZE;
-                break;
+        if (frogger.getPosY() >= W_HEIGHT) {
+            frogger.setPosY(W_HEIGHT - DOT_SIZE);
+        }
 
-            case UP:
-                posY -= DOT_SIZE;
-                break;
+        if (frogger.getPosY() < VERT_OFFSET) {
+            frogger.setPosY(VERT_OFFSET);
+        }
 
-            case DOWN:
-                posY += DOT_SIZE;
-            break;
+        if (frogger.getPosX() >= B_WIDTH) {
+            frogger.setPosX(B_WIDTH - DOT_SIZE);
+        }
+
+        if (frogger.getPosX() < 0) {
+            frogger.setPosX(0);
         }
     }
 
@@ -355,57 +414,33 @@ public class Board extends JPanel implements ActionListener {
     {
         for ( Voiture voit : voitureList )
         {
+            voit.Move(DOT_SIZE, this);
+
             switch (voit.getDirection())
             {
                 case LEFT:
-                    voit.setPosX(voit.getPosX() - (int)(DOT_SIZE * voit.getSpeed()));
                     if (voit.getPosX() < 0 - voit.getWidth() ) voit.setPosX(B_WIDTH);
                     break;
     
                 case RIGHT:
-                    voit.setPosX(voit.getPosX() + (int)(DOT_SIZE * voit.getSpeed()));
                     if (voit.getPosX() > B_WIDTH) voit.setPosX(0 - voit.getWidth());
                     break;
             }
         }
     }
 
-    private void checkCollision() {
-
-        if (posY >= W_HEIGHT) {
-            posY = W_HEIGHT - DOT_SIZE;
-        }
-
-        if (posY < VERT_OFFSET) {
-            posY = VERT_OFFSET;
-        }
-
-        if (posX >= B_WIDTH) {
-            posX = B_WIDTH - DOT_SIZE;
-        }
-
-        if (posX < 0) {
-            posX = 0;
-        }
-        
-        if (!inGame) {
-            triggerLevelEnd();
-            System.out.println("yoooo");
-        }
-    }
-
     private int GetRandomCoordinate() {
 
         int r = (int) (Math.random() * RAND_POS);
-        return (VERT_OFFSET + r * DOT_SIZE);
+        return (r * DOT_SIZE);
+        //TODO differencier hauteur et largeur
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        if (inGame) {
-
-            checkCollision();
+        if (inGame) 
+        {
             checkCollectibles();
             moveVoiture();
         }
@@ -418,25 +453,30 @@ public class Board extends JPanel implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
 
-            int key = e.getKeyCode();
+            if (inGame)
+            {
+                int key = e.getKeyCode();
 
-            if (key == KeyEvent.VK_LEFT) {
-                direction = LEFT;
+                if (key == KeyEvent.VK_LEFT) {
+                    frogger.setDirection(LEFT);
+                }
+    
+                if (key == KeyEvent.VK_RIGHT) {
+                    frogger.setDirection(RIGHT);
+                }
+    
+                if (key == KeyEvent.VK_UP) {
+                    frogger.setDirection(UP);
+                }
+    
+                if (key == KeyEvent.VK_DOWN) {
+                    frogger.setDirection(DOWN);
+                }
+    
+                move();
+                checkCollectibles();
+                repaint();
             }
-
-            if (key == KeyEvent.VK_RIGHT) {
-                direction = RIGHT;
-            }
-
-            if (key == KeyEvent.VK_UP) {
-                direction = UP;
-            }
-
-            if (key == KeyEvent.VK_DOWN) {
-                direction = DOWN;
-            }
-
-            move();
         }
     }
 }

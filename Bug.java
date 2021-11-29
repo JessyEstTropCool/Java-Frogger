@@ -1,8 +1,8 @@
-public class Bug extends Collectible
+public class Bug extends Entity
 {
-    public Bug(int posX, int posY)
+    public Bug(int posX, int posY, int size)
     {
-        super(posX, posY);
+        super(posX, posY, size);
     }
 
     public static String getPathToImage() { return "insect.png"; }

@@ -1,8 +1,8 @@
-public class Coin extends Collectible
+public class Coin extends Entity
 {
-    public Coin(int posX, int posY)
+    public Coin(int posX, int posY, int size)
     {
-        super(posX, posY);
+        super(posX, posY, size);
     }
 
     public static String getPathToImage() { return "coin.png"; }

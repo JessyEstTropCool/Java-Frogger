@@ -1,8 +1,8 @@
-public class Goal extends Collectible 
+public class Goal extends Entity 
 {
-    public Goal(int posX, int posY)
+    public Goal(int posX, int posY, int size)
     {
-        super(posX, posY);
+        super(posX, posY, size);
     }
 
     public static String getPathToImage() { return "goal.png"; }

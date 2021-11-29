@@ -1,40 +1,36 @@
-public class Voiture 
+public class Voiture extends MovingEntity
 {
-    private int posX;
-    private int posY;
-    private int width;
-    private int height;
-    private int direction;
-    private double speed;
-
     public Voiture(int posX, int posY, int width, int height, int direction, double speed)
     {
-        this.posX = posX;
-        this.posY = posY;
-        this.width = width;
-        this.height = height;
-        this.direction = direction;
-        this.speed = speed;
+        super(posX, posY, width, height, direction, speed);
     }
 
-    public boolean inCar(int X, int Y)
+    @Override
+    public void Move(int distance, Board board)
     {
-        return X >= posX && X < posX + width && Y >= posY && Y < posY + height;
+        switch (getDirection())
+        {
+            case LEFT:
+                setPosX(getPosX() - (int)(distance * getSpeed()));
+                break;
+
+            case RIGHT:
+                setPosX(getPosX() + (int)(distance * getSpeed()));
+                break;
+        }
     }
 
-    public int getPosX() { return posX; }
-    public void setPosX(int posX) { this.posX = posX; }
+    @Override
+    public String getType() { return "Voiture"; }
 
-    public int getPosY() { return posY; }
-    public void setPosY(int posY) { this.posY = posY; }
-
-    public int getWidth() { return width; }
-
-    public int getDirection() { return direction; }
-    public void setDirection(int newDir) { this.direction = newDir; }
-
-    public double getSpeed() { return speed; }
-    public void setSpeed(double speed) { this.speed = speed; }
-
-    public String getType() { return "Normal"; }
+    @Override
+    public void triggerAction(Board board)
+    {
+        if ( board.isInvincible() )
+        {
+            board.SendToVoid(this);
+            setDirection(-1);
+        }
+        else board.triggerGameOver();
+    }
 }
