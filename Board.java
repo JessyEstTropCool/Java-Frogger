@@ -28,6 +28,11 @@ public class Board extends JPanel implements ActionListener {
     private final int INVINCIBLE_TIME = 10;
     private final int PROMPT_TIME = 2;
 
+    private final String[] LEVEL_LAYOUTS = {
+        "GGGGRRRGGGRRRGGGRRRGGGRRR",
+        "GGGGRRRRRGRRRGRRRGRRRGGGRR"
+    };
+
     //Constantes pour le code
     private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
@@ -40,8 +45,6 @@ public class Board extends JPanel implements ActionListener {
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
-
-    private final int[] LANES = { 5, 6, 7, 8, 9, 10, 15, 16, 17, 22, 23 };
 
     private final String[] IMAGE_FILENAMES = { 
         Coin.getPathToImage(), 
@@ -79,16 +82,14 @@ public class Board extends JPanel implements ActionListener {
 
     private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
 
-    //private int posX;
-    //private int posY;
-
     private int coinCount;
     private int bugCount;
     private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
     private Goal goal;
+    
+    private int[] lanes;
 
-    //private int direction;
     private int level = 0;
     private boolean inGame = false;
     private boolean spawnedGoal = false;
@@ -161,14 +162,25 @@ public class Board extends JPanel implements ActionListener {
         
         if (inGame) {
 
-            for ( int i : LANES )
+            if ( level < LEVEL_LAYOUTS.length )
             {
-                g.setColor(Color.BLACK);
-                g.fillRect(0, VERT_OFFSET + i * DOT_SIZE, B_WIDTH, DOT_SIZE);
-
-                g.setColor(Color.YELLOW);
-                g.fillRect(0, VERT_OFFSET - 1 + i * DOT_SIZE, B_WIDTH, 2);
-                g.fillRect(0, VERT_OFFSET + (i+1) * DOT_SIZE, B_WIDTH, 2);
+                for ( int compt = 0; compt < LEVEL_LAYOUTS[level].length(); compt++ )
+                {
+                    switch (LEVEL_LAYOUTS[level].charAt(compt))
+                    {
+                        case 'G':
+                            break;
+    
+                        case 'R':
+                            g.setColor(Color.BLACK);
+                            g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
+            
+                            g.setColor(Color.YELLOW);
+                            g.fillRect(0, VERT_OFFSET - 1 + compt * DOT_SIZE, B_WIDTH, 2);
+                            g.fillRect(0, VERT_OFFSET + (compt+1) * DOT_SIZE, B_WIDTH, 2);
+                            break;
+                    }
+                }
             }
 
             for ( Voiture voit : voitureList )
@@ -289,10 +301,21 @@ public class Board extends JPanel implements ActionListener {
             collectibleList = new ArrayList<Entity>();
             voitureList = new ArrayList<Voiture>();
 
-            for ( int i : LANES )
+            if ( level < LEVEL_LAYOUTS.length )
             {
-                voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-                if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                for ( int compt = 0; compt < LEVEL_LAYOUTS[level].length(); compt++ )
+                {
+                    switch (LEVEL_LAYOUTS[level].charAt(compt))
+                    {
+                        case 'G':
+                            break;
+    
+                        case 'R':
+                            voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                            if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                            break;
+                    }
+                }
             }
 
             if ( level == 1 ) voitureList.add(new Blinky(GetRandomCoordinate(), VERT_OFFSET + 10 * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, 0.25));
