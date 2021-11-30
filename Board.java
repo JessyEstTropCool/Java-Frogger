@@ -57,6 +57,7 @@ public class Board extends JPanel implements ActionListener {
         "blueCar.png",
         "orangeCar.png",
     };
+
     private final String[] IMAGE_KEYS = { 
         "Coin", 
         "Bug", 
@@ -146,58 +147,6 @@ public class Board extends JPanel implements ActionListener {
         invincTimer = new Timer(1000, invincibleAction);
     }
 
-    private void initGame() {
-
-        System.out.println("We initin' " + level);
-
-        introTimer.start();
-
-        repaint();
-    }
-
-    private ActionListener loadNextLevel = new ActionListener()
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            System.out.println("We loadin' " + level);
-
-            spawnedGoal = false;
-            inGame = true;
-
-            frogger.setPosX(B_WIDTH / 2);
-            frogger.setPosY(B_HEIGHT - DOT_SIZE);
-            
-            coinCount = levels[level];
-            bugCount = levels[level] / 2 + 1;
-            collectibleList = new ArrayList<Entity>();
-            voitureList = new ArrayList<Voiture>();
-
-            for ( int i : LANES )
-            {
-                voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-                if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-            }
-
-            for ( int compt = 0; compt < coinCount; compt++ )
-                collectibleList.add(new Coin(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
-
-            for ( int compt = 0; compt < bugCount; compt++ )
-                collectibleList.add(new Bug(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
-
-            collectibleList.add(new Pill(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
-
-            startLevel();
-        }
-    };
-
-    private void startLevel()
-    {
-        System.out.println("We startin' " + level);
-        introTimer.stop();
-        gameTimer.start();
-        repaint();
-    }
-
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -278,6 +227,83 @@ public class Board extends JPanel implements ActionListener {
             g.drawString(subPrompt, (B_WIDTH - hudMetrics.stringWidth(subPrompt)) / 2, B_HEIGHT / 2 + (int)(DOT_SIZE * 1.5));
         }
     }
+    
+    private void initGame() 
+    {
+        System.out.println("We initin' " + level);
+
+        introTimer.start();
+
+        repaint();
+    }
+
+    private ActionListener loadNextLevel = new ActionListener()
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            System.out.println("We loadin' " + level);
+
+            spawnedGoal = false;
+            inGame = true;
+
+            frogger.setPosX(B_WIDTH / 2);
+            frogger.setPosY(B_HEIGHT - DOT_SIZE);
+            
+            coinCount = levels[level];
+            bugCount = levels[level] / 2 + 1;
+            collectibleList = new ArrayList<Entity>();
+            voitureList = new ArrayList<Voiture>();
+
+            for ( int i : LANES )
+            {
+                voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+            }
+
+            for ( int compt = 0; compt < coinCount; compt++ )
+                collectibleList.add(new Coin(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+
+            for ( int compt = 0; compt < bugCount; compt++ )
+                collectibleList.add(new Bug(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+
+            collectibleList.add(new Pill(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+
+            startLevel();
+        }
+    };
+
+    private void startLevel()
+    {
+        System.out.println("We startin' " + level);
+        introTimer.stop();
+        gameTimer.start();
+        repaint();
+    }
+
+    public void triggerLevelEnd()
+    {
+        System.out.println("We stoppin' "+level);
+
+        inGame = false;
+        gameTimer.stop();
+
+        level++;
+
+        if ( level < levels.length ) initGame();
+        else repaint();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (inGame) 
+        {
+            checkCollectibles();
+            moveVoiture();
+        }
+
+        repaint();
+    }
 
     private void checkCollectibles() {
 
@@ -316,6 +342,25 @@ public class Board extends JPanel implements ActionListener {
                     incScore(2);
                 }
                 else triggerGameOver();
+            }
+        }
+    }
+
+    private void moveVoiture()
+    {
+        for ( Voiture voit : voitureList )
+        {
+            voit.Move(DOT_SIZE, this);
+
+            switch (voit.getDirection())
+            {
+                case LEFT:
+                    if (voit.getPosX() < 0 - voit.getWidth() ) voit.setPosX(B_WIDTH);
+                    break;
+    
+                case RIGHT:
+                    if (voit.getPosX() > B_WIDTH) voit.setPosX(0 - voit.getWidth());
+                    break;
             }
         }
     }
@@ -361,19 +406,6 @@ public class Board extends JPanel implements ActionListener {
         }
     };
 
-    public void triggerLevelEnd()
-    {
-        System.out.println("We stoppin' "+level);
-
-        inGame = false;
-        gameTimer.stop();
-
-        level++;
-
-        if ( level < levels.length ) initGame();
-        else repaint();
-    }
-
     public boolean isInvincible()
     {
         return invincSeconds > 0;
@@ -391,7 +423,13 @@ public class Board extends JPanel implements ActionListener {
 
     private void move() {
 
-        frogger.Move(DOT_SIZE, this);
+        if ( ( (frogger.getPosY() % DOT_SIZE != 0 && (frogger.getDirection() == UP || frogger.getDirection() == DOWN)) 
+        || (frogger.getPosX() % DOT_SIZE != 0 && (frogger.getDirection() == LEFT || frogger.getDirection() == RIGHT)) )
+        && invincSeconds <= 0 )
+        {
+            frogger.Move(DOT_SIZE / 2, this);
+        }
+        else frogger.Move(DOT_SIZE, this);
 
         if (frogger.getPosY() >= W_HEIGHT) {
             frogger.setPosY(W_HEIGHT - DOT_SIZE);
@@ -410,42 +448,11 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    private void moveVoiture()
-    {
-        for ( Voiture voit : voitureList )
-        {
-            voit.Move(DOT_SIZE, this);
-
-            switch (voit.getDirection())
-            {
-                case LEFT:
-                    if (voit.getPosX() < 0 - voit.getWidth() ) voit.setPosX(B_WIDTH);
-                    break;
-    
-                case RIGHT:
-                    if (voit.getPosX() > B_WIDTH) voit.setPosX(0 - voit.getWidth());
-                    break;
-            }
-        }
-    }
-
     private int GetRandomCoordinate() {
 
         int r = (int) (Math.random() * RAND_POS);
         return (r * DOT_SIZE);
         //TODO differencier hauteur et largeur
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        if (inGame) 
-        {
-            checkCollectibles();
-            moveVoiture();
-        }
-
-        repaint();
     }
 
     private class TAdapter extends KeyAdapter {
