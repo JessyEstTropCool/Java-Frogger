@@ -26,6 +26,7 @@ public class Board extends JPanel implements ActionListener {
     private final int GRID_HEIGHT = 30;
     private final int HUD_HEIGHT = 1;
     private final int INVINCIBLE_TIME = 10;
+    private final int PROMPT_TIME = 2;
 
     //Constantes pour le code
     private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
@@ -35,6 +36,7 @@ public class Board extends JPanel implements ActionListener {
     private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
     private final int RAND_POS = GRID_WIDTH - 1;
     private final int DELAY = 100;
+    private final double VERT_CENTER_TEXT = 0.75;
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
@@ -84,6 +86,7 @@ public class Board extends JPanel implements ActionListener {
     private int bugCount;
     private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
+    private Goal goal;
 
     //private int direction;
     private int level = 0;
@@ -141,7 +144,7 @@ public class Board extends JPanel implements ActionListener {
 
         gameTimer = new Timer(DELAY, this);
 
-        introTimer = new Timer(2000, loadNextLevel);
+        introTimer = new Timer(PROMPT_TIME * 1000, loadNextLevel);
         introTimer.setRepeats(false); 
 
         invincTimer = new Timer(1000, invincibleAction);
@@ -178,7 +181,22 @@ public class Board extends JPanel implements ActionListener {
                 g.drawImage(spritesMap.get(coll.getType()), coll.getPosX(), coll.getPosY(), this);
             }
 
-            if (!spawnedGoal) g.drawImage(spritesMap.get("GoalDown"), B_WIDTH / 2, VERT_OFFSET, this);
+            if (spawnedGoal)
+            {
+                g.setColor(Color.RED);
+                g.fillRect(0, VERT_OFFSET + DOT_SIZE - 3, B_WIDTH, 2);
+
+                g.drawImage(spritesMap.get("Goal"), 0, VERT_OFFSET, this);
+                g.drawImage(spritesMap.get("Goal"), B_WIDTH - DOT_SIZE, VERT_OFFSET, this);
+            }
+            else
+            {
+                g.setColor(Color.GRAY);
+                g.fillRect(0, VERT_OFFSET + DOT_SIZE - 1, B_WIDTH, 1);
+
+                g.drawImage(spritesMap.get("GoalDown"), 0, VERT_OFFSET, this);
+                g.drawImage(spritesMap.get("GoalDown"), B_WIDTH - DOT_SIZE, VERT_OFFSET, this);
+            }
             
             g.drawImage(spritesMap.get( Integer.toString( frogger.getDirection() ) ), frogger.getPosX(), frogger.getPosY(), this);
 
@@ -201,30 +219,45 @@ public class Board extends JPanel implements ActionListener {
 
         } else {
 
-            if ( level == -1 ) prompt(g, "Game Over", "Score : "+score);
-            else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1), "");
+            if ( level == -1 ) prompt(g, "Game Over", new String[]{"", "Score : "+score, "Niveau : " + (level + 1)});
+            else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1));
             else prompt(g, "Fin de jeu", "Score : "+score);
 
             Toolkit.getDefaultToolkit().sync();
         }        
     }
+    
+    private void prompt(Graphics g, String prompt)
+    {
+        prompt(g, prompt, new String[0]);
+    }
 
     private void prompt(Graphics g, String prompt, String subPrompt)
     {
+        prompt(g, prompt, new String[]{subPrompt});
+    }
+
+    private void prompt(Graphics g, String prompt, String[] subPrompts)
+    {
         Font small = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
         FontMetrics metr = getFontMetrics(small);
+        int totalSize = small.getSize() + subPrompts.length * hudFont.getSize();
+        int strY = (W_HEIGHT - totalSize) / 2;
 
         g.setColor(Color.BLACK);
-        g.fillRect(0, B_HEIGHT / 2 - 3 * DOT_SIZE, B_WIDTH, 5 * DOT_SIZE);
+        g.fillRect(0, strY - DOT_SIZE, B_WIDTH, totalSize + DOT_SIZE * 2);
 
-        g.setColor(Color.white);
+        g.setColor(FORECOLOR);
         g.setFont(small);
-        g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, B_HEIGHT / 2);
+        g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, (int)(strY + VERT_CENTER_TEXT * small.getSize()) );
 
-        if ( subPrompt != "" ) 
+        strY += small.getSize();
+        g.setFont(hudFont);
+
+        for ( String line : subPrompts )
         {
-            g.setFont(hudFont);
-            g.drawString(subPrompt, (B_WIDTH - hudMetrics.stringWidth(subPrompt)) / 2, B_HEIGHT / 2 + (int)(DOT_SIZE * 1.5));
+            g.drawString(line, (B_WIDTH - hudMetrics.stringWidth(line)) / 2, (int)(strY + VERT_CENTER_TEXT * hudFont.getSize()) );
+            strY += hudFont.getSize();
         }
     }
     
@@ -246,6 +279,8 @@ public class Board extends JPanel implements ActionListener {
             spawnedGoal = false;
             inGame = true;
 
+            goal = null;
+
             frogger.setPosX(B_WIDTH / 2);
             frogger.setPosY(B_HEIGHT - DOT_SIZE);
             
@@ -259,6 +294,8 @@ public class Board extends JPanel implements ActionListener {
                 voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
                 if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + i * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
             }
+
+            if ( level == 1 ) voitureList.add(new Blinky(GetRandomCoordinate(), VERT_OFFSET + 10 * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, 0.25));
 
             for ( int compt = 0; compt < coinCount; compt++ )
                 collectibleList.add(new Coin(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
@@ -314,19 +351,22 @@ public class Board extends JPanel implements ActionListener {
                 SendToVoid(coll);
 
                 coll.triggerAction(this);
-                
-                if ( coll.getType() != "Goal" )
-                {
-                    System.out.println("Pièces restantes : "+coinCount);
-                    System.out.println("Score : "+score);
-                }
             }
         }
 
-        if ( !spawnedGoal && coinCount <= 0 ) 
+        if ( coinCount <= 0 )
         {
-            collectibleList.add(new Goal(B_WIDTH / 2, VERT_OFFSET, DOT_SIZE));
-            spawnedGoal = true;
+            if ( !spawnedGoal ) 
+            {
+                goal = new Goal(0, VERT_OFFSET, B_WIDTH, DOT_SIZE);
+                spawnedGoal = true;
+            }
+            
+            if ( frogger.Collides(goal) )
+            {
+                SendToVoid(goal);
+                goal.triggerAction(this);
+            }
         }
 
         for ( Voiture voit : voitureList )
@@ -409,6 +449,11 @@ public class Board extends JPanel implements ActionListener {
     public boolean isInvincible()
     {
         return invincSeconds > 0;
+    }
+
+    public MovingEntity getFrogger()
+    {
+        return frogger;
     }
 
     public void incScore(int amount)
