@@ -30,16 +30,19 @@ public class Board extends JPanel implements ActionListener {
 
     private final String[] LEVEL_LAYOUTS = {
         "GGGGRRRGGGRRRGGGRRRGGGRRR",
-        "GGGGRRRRRGRRRGRRRGRRRGGGRR"
+        "GGGGRRRRRGRRRGRRRGRRRGGGRR",
+        "GGGGRRRRRRGGGGRRRRRRGGGGRRR"
     };
 
     //Constantes pour le code
     private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
+    private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
+
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
     private final int VERT_OFFSET = HUD_HEIGHT * DOT_SIZE;
     private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
-    private final int RAND_POS = GRID_WIDTH - 1;
+    //private final int RAND_POS = GRID_WIDTH - 1;
     private final int DELAY = 100;
     private final double VERT_CENTER_TEXT = 0.75;
 
@@ -87,12 +90,11 @@ public class Board extends JPanel implements ActionListener {
     private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
     private Goal goal;
-    
-    private int[] lanes;
 
     private int level = 0;
     private boolean inGame = false;
     private boolean spawnedGoal = false;
+    private boolean lost = false;
 
     private final int[] levels = { 1, 2, 3 };
 
@@ -168,10 +170,10 @@ public class Board extends JPanel implements ActionListener {
                 {
                     switch (LEVEL_LAYOUTS[level].charAt(compt))
                     {
-                        case 'G':
+                        case GRASS:
                             break;
     
-                        case 'R':
+                        case ROAD:
                             g.setColor(Color.BLACK);
                             g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
             
@@ -231,7 +233,7 @@ public class Board extends JPanel implements ActionListener {
 
         } else {
 
-            if ( level == -1 ) prompt(g, "Game Over", new String[]{"", "Score : "+score, "Niveau : " + (level + 1)});
+            if ( lost ) prompt(g, "Game Over", new String[]{"", "Score : "+score, "Niveau : " + (level + 1)});
             else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1));
             else prompt(g, "Fin de jeu", "Score : "+score);
 
@@ -294,7 +296,7 @@ public class Board extends JPanel implements ActionListener {
             goal = null;
 
             frogger.setPosX(B_WIDTH / 2);
-            frogger.setPosY(B_HEIGHT - DOT_SIZE);
+            frogger.setPosY(W_HEIGHT - DOT_SIZE);
             
             coinCount = levels[level];
             bugCount = levels[level] / 2 + 1;
@@ -307,26 +309,26 @@ public class Board extends JPanel implements ActionListener {
                 {
                     switch (LEVEL_LAYOUTS[level].charAt(compt))
                     {
-                        case 'G':
+                        case GRASS:
                             break;
     
-                        case 'R':
-                            voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-                            if ( level == 2 ) voitureList.add(new Voiture(GetRandomCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                        case ROAD:
+                            voitureList.add(new Voiture(GetRandomXCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                            if ( level == 2 ) voitureList.add(new Voiture(GetRandomXCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
                             break;
                     }
                 }
             }
 
-            if ( level == 1 ) voitureList.add(new Blinky(GetRandomCoordinate(), VERT_OFFSET + 10 * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, 0.25));
+            voitureList.add(new Blinky(GetRandomXCoordinate(), VERT_OFFSET + 10 * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, 0.6));
 
             for ( int compt = 0; compt < coinCount; compt++ )
-                collectibleList.add(new Coin(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+                collectibleList.add(new Coin(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
 
             for ( int compt = 0; compt < bugCount; compt++ )
-                collectibleList.add(new Bug(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+                collectibleList.add(new Bug(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
 
-            collectibleList.add(new Pill(GetRandomCoordinate(), VERT_OFFSET + GetRandomCoordinate(), DOT_SIZE));
+            collectibleList.add(new Pill(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
 
             startLevel();
         }
@@ -351,6 +353,18 @@ public class Board extends JPanel implements ActionListener {
 
         if ( level < levels.length ) initGame();
         else repaint();
+    }
+
+    public void triggerGameOver()
+    {
+        System.out.println("We losin' ");
+
+        inGame = false;
+        gameTimer.stop();
+
+        lost = true;
+
+        repaint();
     }
 
     @Override
@@ -434,23 +448,22 @@ public class Board extends JPanel implements ActionListener {
         victim.setPosY(voidY);
     }
 
-    public void triggerGameOver()
-    {
-        System.out.println("We losin' ");
-
-        inGame = false;
-        gameTimer.stop();
-
-        level = -1;
-
-        repaint();
-    }
-
     public void triggerInvincible()
     {
         invincSeconds = INVINCIBLE_TIME;
         invincTimer.start();
         frogger.setSpeed(0.5);
+    }
+
+    public boolean isRoad(int posY)
+    {
+        int gridY = ((posY - VERT_OFFSET) / DOT_SIZE);
+        return gridY < LEVEL_LAYOUTS[level].length() && LEVEL_LAYOUTS[level].charAt(gridY) == ROAD;
+    }
+
+    public void alignY(Entity ent)
+    {
+        ent.setPosY(ent.getPosY() - ent.getPosY() % DOT_SIZE);
     }
     
     private ActionListener invincibleAction = new ActionListener()
@@ -516,11 +529,16 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
-    private int GetRandomCoordinate() {
+    private int GetRandomXCoordinate() {
 
-        int r = (int) (Math.random() * RAND_POS);
+        int r = (int) (Math.random() * (GRID_WIDTH - 1));
         return (r * DOT_SIZE);
-        //TODO differencier hauteur et largeur
+    }
+
+    private int GetRandomYCoordinate() {
+
+        int r = (int) (Math.random() * (GRID_HEIGHT - 1));
+        return (VERT_OFFSET + r * DOT_SIZE);
     }
 
     private class TAdapter extends KeyAdapter {

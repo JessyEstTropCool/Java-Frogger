@@ -8,6 +8,31 @@ public class Blinky extends Voiture
     @Override
     public void Move(int distance, Board board)
     {
+        if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() && board.isRoad(board.getFrogger().getPosY()) ) 
+        {
+            setPosY(board.getFrogger().getPosY());
+        }
+        else
+        {
+            if ( board.getFrogger().getPosY() > getPosY() ) 
+            {
+                setPosY(getPosY() + (int)(distance * getSpeed()));
+    
+                if ( board.isRoad(getPosY()) && !board.isRoad(getHeight() + getPosY()) )
+                {
+                    board.alignY(this);
+                }
+            }
+            else if ( board.getFrogger().getPosY() < getPosY() ) 
+            {
+                if ( board.isRoad(getPosY()) && !board.isRoad(getPosY() - (int)(distance * getSpeed())) )
+                {
+                    board.alignY(this);
+                }
+                else setPosY(getPosY() - (int)(distance * getSpeed()));
+            }
+        }
+        
         switch (getDirection())
         {
             case LEFT:
@@ -17,19 +42,6 @@ public class Blinky extends Voiture
             case RIGHT:
                 setPosX(getPosX() + (int)(distance * getSpeed()));
                 break;
-        }
-
-        if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() ) setPosY(board.getFrogger().getPosY());
-        else 
-        {
-            if ( board.getFrogger().getPosY() > getPosY() ) 
-            {
-                setPosY(getPosY() + (int)(distance * getSpeed()));
-            }
-            else if ( board.getFrogger().getPosY() < getPosY() ) 
-            {
-                setPosY(getPosY() - (int)(distance * getSpeed()));
-            }
         }
     }
 
