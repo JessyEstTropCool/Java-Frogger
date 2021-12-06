@@ -1,8 +1,15 @@
 public class Frog extends MovingEntity
 {
+    private int invincSeconds;
+
     public Frog(int posX, int posY, int width, int height, int direction, double speed)
     {
         super(posX, posY, width, height, direction, speed);
+    }
+
+    public boolean isInvincible()
+    {
+        return invincSeconds > 0;
     }
 
     @Override
@@ -29,5 +36,5 @@ public class Frog extends MovingEntity
     }
 
     @Override
-    public String getType() { return "Frogger"; }
+    public String getType() { return "Frogger" + getDirection(); }
 }

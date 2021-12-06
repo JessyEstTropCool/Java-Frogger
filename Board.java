@@ -54,15 +54,19 @@ public class Board extends JPanel implements ActionListener {
     private final Color FORECOLOR = Color.WHITE;
 
     private final String[] IMAGE_FILENAMES = { 
+        "headUp.png", 
+        "headDown.png", 
+        "headLeft.png", 
+        "headRight.png", 
+        "headUpInv.png", 
+        "headDownInv.png", 
+        "headLeftInv.png", 
+        "headRightInv.png", 
         Coin.getPathToImage(), 
         Bug.getPathToImage(), 
         Pill.getPathToImage(), 
         Goal.getPathToImage(), 
         "goalDown.png", 
-        "headUp.png", 
-        "headDown.png", 
-        "headLeft.png", 
-        "headRight.png", 
         "coeur.png",
         "tronc.png",
         "troncEau.png",
@@ -74,15 +78,19 @@ public class Board extends JPanel implements ActionListener {
     };
 
     private final String[] IMAGE_KEYS = { 
+        "Frogger"+UP+false,
+        "Frogger"+DOWN+false, 
+        "Frogger"+LEFT+false, 
+        "Frogger"+RIGHT+false, 
+        "Frogger"+UP+true,
+        "Frogger"+DOWN+true, 
+        "Frogger"+LEFT+true, 
+        "Frogger"+RIGHT+true, 
         "Coin", 
         "Bug", 
         "Pill",
         "Goal", 
         "GoalDown",
-        Integer.toString(UP),
-        Integer.toString(DOWN), 
-        Integer.toString(LEFT), 
-        Integer.toString(RIGHT), 
         "Coeur",
         "Tronc",
         "TroncEau",
@@ -233,7 +241,7 @@ public class Board extends JPanel implements ActionListener {
             g.drawImage(spritesMap.get(goal.getType()), 0, VERT_OFFSET, this);
             g.drawImage(spritesMap.get(goal.getType()), B_WIDTH - DOT_SIZE, VERT_OFFSET, this);
             
-            g.drawImage(spritesMap.get( Integer.toString( frogger.getDirection() ) ), frogger.getPosX(), frogger.getPosY(), this);
+            g.drawImage(spritesMap.get( frogger.getType() + isInvincible() ), frogger.getPosX(), frogger.getPosY(), this);
 
             //HUD
 
@@ -597,6 +605,7 @@ public class Board extends JPanel implements ActionListener {
         && invincSeconds <= 0 )
         {
             frogger.Move(DOT_SIZE / 2, this);
+            //TODO switch case pour l'alignement
         }
         else frogger.Move(DOT_SIZE, this);
 
