@@ -109,6 +109,7 @@ public class Board extends JPanel implements ActionListener {
     private Font hudFont;
     private FontMetrics hudMetrics;
 
+    private int highScore = 0;
     private int score = 0;
     private int voidX = -1*B_WIDTH;
     private int voidY = -1*B_HEIGHT;
@@ -185,6 +186,11 @@ public class Board extends JPanel implements ActionListener {
                             g.fillRect(0, VERT_OFFSET - 1 + compt * DOT_SIZE, B_WIDTH, 2);
                             g.fillRect(0, VERT_OFFSET + (compt+1) * DOT_SIZE, B_WIDTH, 2);
                             break;
+
+                        case WATER:
+                            g.setColor(Color.CYAN);
+                            g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
+                            break;
                     }
                 }
             }
@@ -226,6 +232,7 @@ public class Board extends JPanel implements ActionListener {
             g.setFont(hudFont);
             g.setColor(FORECOLOR);
             g.drawString("Score : " + score, 0, (int)(DOT_SIZE * VERT_CENTER_TEXT));
+            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(DOT_SIZE * VERT_CENTER_TEXT));
             g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(DOT_SIZE * VERT_CENTER_TEXT));
 
             for ( int compt = 0 ; compt < lives ; compt++ )
@@ -282,6 +289,18 @@ public class Board extends JPanel implements ActionListener {
             g.drawString(line, (B_WIDTH - hudMetrics.stringWidth(line)) / 2, (int)(strY + VERT_CENTER_TEXT * hudFont.getSize()) );
             strY += hudFont.getSize();
         }
+    }
+
+    private void restartGame()
+    {
+        if ( score > highScore ) highScore = score;
+
+        score = 0;
+        level = 0;
+        lives = START_LIVES;
+        lost = false;
+
+        initGame();
     }
     
     private void initGame() 
@@ -358,16 +377,32 @@ public class Board extends JPanel implements ActionListener {
         inGame = false;
         gameTimer.stop();
 
+        if ( invincTimer.isRunning() )
+        {
+            invincTimer.stop();
+            invincSeconds = 0;
+        }
+
         level++;
 
         if ( level < levels.length ) initGame();
-        else repaint();
+        else 
+        {
+            repaint();
+            restartGame();
+        }
     }
 
     public void loseLife()
     {
         inGame = false;
         gameTimer.stop();
+
+        if ( invincTimer.isRunning() )
+        {
+            invincTimer.stop();
+            invincSeconds = 0;
+        }
 
         if ( lives > 0 ) 
         {
@@ -382,6 +417,8 @@ public class Board extends JPanel implements ActionListener {
             repaint();
 
             System.out.println("We actually losin' ");
+
+            restartGame();
         }
     }
 
