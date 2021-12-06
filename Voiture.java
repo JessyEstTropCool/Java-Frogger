@@ -31,6 +31,6 @@ public class Voiture extends MovingEntity
             board.SendToVoid(this);
             setDirection(-1);
         }
-        else board.triggerGameOver();
+        else board.loseLife();
     }
 }

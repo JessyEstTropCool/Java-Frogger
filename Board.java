@@ -24,9 +24,10 @@ public class Board extends JPanel implements ActionListener {
     private final int DOT_SIZE = 10;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
-    private final int HUD_HEIGHT = 1;
+    private final int HUD_HEIGHT = 2;
     private final int INVINCIBLE_TIME = 10;
     private final int PROMPT_TIME = 2;
+    private final int START_LIVES = 3;
 
     private final String[] LEVEL_LAYOUTS = {
         "GGGGRRRGGGRRRGGGRRRGGGRRR",
@@ -59,6 +60,7 @@ public class Board extends JPanel implements ActionListener {
         "headDown.png", 
         "headLeft.png", 
         "headRight.png", 
+        "coeur.png",
         "car.png",
         "redCar.png",
         "purpleCar.png",
@@ -76,6 +78,7 @@ public class Board extends JPanel implements ActionListener {
         Integer.toString(DOWN), 
         Integer.toString(LEFT), 
         Integer.toString(RIGHT), 
+        "Coeur",
         "Voiture",
         "Blinky",
         "Pinky",
@@ -92,6 +95,7 @@ public class Board extends JPanel implements ActionListener {
     private Goal goal;
 
     private int level = 0;
+    private int lives = START_LIVES;
     private boolean inGame = false;
     private boolean spawnedGoal = false;
     private boolean lost = false;
@@ -221,12 +225,17 @@ public class Board extends JPanel implements ActionListener {
 
             g.setFont(hudFont);
             g.setColor(FORECOLOR);
-            g.drawString("Score : " + score, 0, DOT_SIZE - 1);
-            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, DOT_SIZE - 1);
+            g.drawString("Score : " + score, 0, (int)(DOT_SIZE * VERT_CENTER_TEXT));
+            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(DOT_SIZE * VERT_CENTER_TEXT));
+
+            for ( int compt = 0 ; compt < lives ; compt++ )
+            {
+                g.drawImage(spritesMap.get("Coeur"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
+            }
 
             for ( int compt = 0 ; compt < invincSeconds ; compt++ )
             {
-                g.drawImage(spritesMap.get("Pill"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
+                g.drawImage(spritesMap.get("Pill"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
             }
 
             Toolkit.getDefaultToolkit().sync();
@@ -234,7 +243,7 @@ public class Board extends JPanel implements ActionListener {
         } else {
 
             if ( lost ) prompt(g, "Game Over", new String[]{"", "Score : "+score, "Niveau : " + (level + 1)});
-            else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1));
+            else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1), "Vies restantes : "+lives);
             else prompt(g, "Fin de jeu", "Score : "+score);
 
             Toolkit.getDefaultToolkit().sync();
@@ -253,19 +262,19 @@ public class Board extends JPanel implements ActionListener {
 
     private void prompt(Graphics g, String prompt, String[] subPrompts)
     {
-        Font small = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
-        FontMetrics metr = getFontMetrics(small);
-        int totalSize = small.getSize() + subPrompts.length * hudFont.getSize();
+        Font promptFont = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
+        FontMetrics metr = getFontMetrics(promptFont);
+        int totalSize = promptFont.getSize() + subPrompts.length * hudFont.getSize();
         int strY = (W_HEIGHT - totalSize) / 2;
 
         g.setColor(Color.BLACK);
         g.fillRect(0, strY - DOT_SIZE, B_WIDTH, totalSize + DOT_SIZE * 2);
 
         g.setColor(FORECOLOR);
-        g.setFont(small);
-        g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, (int)(strY + VERT_CENTER_TEXT * small.getSize()) );
+        g.setFont(promptFont);
+        g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, (int)(strY + VERT_CENTER_TEXT * promptFont.getSize()) );
 
-        strY += small.getSize();
+        strY += promptFont.getSize();
         g.setFont(hudFont);
 
         for ( String line : subPrompts )
@@ -355,16 +364,25 @@ public class Board extends JPanel implements ActionListener {
         else repaint();
     }
 
-    public void triggerGameOver()
+    public void loseLife()
     {
-        System.out.println("We losin' ");
-
         inGame = false;
         gameTimer.stop();
 
-        lost = true;
+        if ( lives > 0 ) 
+        {
+            lives--;
+            initGame();
 
-        repaint();
+            System.out.println("We losin' ");
+        }
+        else 
+        {
+            lost = true;
+            repaint();
+
+            System.out.println("We actually losin' ");
+        }
     }
 
     @Override
@@ -418,7 +436,7 @@ public class Board extends JPanel implements ActionListener {
 
                     incScore(2);
                 }
-                else triggerGameOver();
+                else loseLife();
             }
         }
     }
