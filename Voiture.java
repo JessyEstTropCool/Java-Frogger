@@ -1,4 +1,4 @@
-public class Voiture extends MovingEntity
+public class Voiture extends MovingEntity implements Itriggerable
 {
     public Voiture(int posX, int posY, int width, int height, int direction, double speed)
     {
@@ -30,6 +30,8 @@ public class Voiture extends MovingEntity
         {
             board.SendToVoid(this);
             setDirection(-1);
+
+            board.incScore(2);
         }
         else board.loseLife();
     }

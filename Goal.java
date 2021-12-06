@@ -1,4 +1,4 @@
-public class Goal extends Entity 
+public class Goal extends Entity implements Itriggerable
 {
     private boolean ready;
 

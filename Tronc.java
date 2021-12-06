@@ -7,10 +7,4 @@ public class Tronc extends Entity
 
     @Override
     public String getType() { return "Tronc"; }
-
-    @Override
-    public void triggerAction(Board board)
-    {
-
-    }
 }

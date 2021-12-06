@@ -370,7 +370,10 @@ public class Board extends JPanel implements ActionListener {
             }
 
             if ( LEVEL_LAYOUTS[level].indexOf(ROAD) != -1)
-                voitureList.add(new Blinky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].indexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25)));
+            {
+                voitureList.add(new Blinky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].indexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                voitureList.add(new Inky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].lastIndexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+            }
 
             for ( int compt = 0; compt < coinCount; compt++ )
                 collectibleList.add(new Coin(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
@@ -466,7 +469,7 @@ public class Board extends JPanel implements ActionListener {
     
                 SendToVoid(coll);
 
-                coll.triggerAction(this);
+                ((Itriggerable)coll).triggerAction(this);
             }
         }
 
@@ -482,15 +485,7 @@ public class Board extends JPanel implements ActionListener {
         {
             if ( frogger.Collides(voit) )
             {
-                if ( invincSeconds > 0 )
-                {
-                    voit.setDirection(STOP);
-                    voit.setPosX(voidX);
-                    voit.setPosY(voidY);
-
-                    incScore(2);
-                }
-                else loseLife();
+                ((Itriggerable)voit).triggerAction(this);
             }
         }
     }

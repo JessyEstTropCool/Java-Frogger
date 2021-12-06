@@ -1,4 +1,4 @@
-public class Coin extends Entity
+public class Coin extends Entity implements Itriggerable
 {
     public Coin(int posX, int posY, int size)
     {

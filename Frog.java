@@ -30,10 +30,4 @@ public class Frog extends MovingEntity
 
     @Override
     public String getType() { return "Frogger"; }
-
-    @Override
-    public void triggerAction(Board board)
-    {
-        System.out.println("That's not how it works");
-    }
 }

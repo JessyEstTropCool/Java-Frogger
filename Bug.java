@@ -1,4 +1,4 @@
-public class Bug extends Entity
+public class Bug extends Entity implements Itriggerable
 {
     public Bug(int posX, int posY, int size)
     {

@@ -1,4 +1,4 @@
-public class Pill extends Entity
+public class Pill extends Entity implements Itriggerable
 {
     public Pill(int posX, int posY, int size)
     {

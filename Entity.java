@@ -47,5 +47,4 @@ public abstract class Entity
     public void setHeight(int height) { this.height = height; }
 
     public abstract String getType();
-    public abstract void triggerAction(Board board);
 }
