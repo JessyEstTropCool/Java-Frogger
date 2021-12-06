@@ -458,7 +458,7 @@ public class Board extends JPanel implements ActionListener {
     public boolean isRoad(int posY)
     {
         int gridY = ((posY - VERT_OFFSET) / DOT_SIZE);
-        return gridY < LEVEL_LAYOUTS[level].length() && LEVEL_LAYOUTS[level].charAt(gridY) == ROAD;
+        return gridY >= 0 && gridY < LEVEL_LAYOUTS[level].length() && LEVEL_LAYOUTS[level].charAt(gridY) == ROAD;
     }
 
     public void alignY(Entity ent)
