@@ -17,8 +17,8 @@ import javax.swing.plaf.ColorUIResource;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Board extends JPanel implements ActionListener {
-
+public class Board extends JPanel implements ActionListener, Idirectional 
+{
     //Paramêtres
     private final String MEDIA_PATH = "Images/";
     private final int DOT_SIZE = 10;
@@ -39,7 +39,6 @@ public class Board extends JPanel implements ActionListener {
     };
 
     //Constantes pour le code
-    private final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3, STOP = -1;
     private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
 
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;

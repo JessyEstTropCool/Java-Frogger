@@ -1,6 +1,5 @@
-public abstract class MovingEntity extends Entity
+public abstract class MovingEntity extends Entity implements Idirectional
 {
-    protected final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
     private int direction;
     private double speed;
 
