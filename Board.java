@@ -608,7 +608,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
         else frogger.Move(DOT_SIZE, this);
 
-        if (frogger.getPosY() >= W_HEIGHT) {
+        if (frogger.getPosY() + frogger.getHeight() >= W_HEIGHT) {
             frogger.setPosY(W_HEIGHT - DOT_SIZE);
         }
 
@@ -616,7 +616,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             frogger.setPosY(VERT_OFFSET);
         }
 
-        if (frogger.getPosX() >= B_WIDTH) {
+        if (frogger.getPosX() + frogger.getWidth() >= B_WIDTH) {
             frogger.setPosX(B_WIDTH - DOT_SIZE);
         }
 
