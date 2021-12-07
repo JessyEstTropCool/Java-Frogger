@@ -379,7 +379,9 @@ public class Board extends JPanel implements ActionListener, Idirectional
             if ( LEVEL_LAYOUTS[level].indexOf(ROAD) != -1)
             {
                 voitureList.add(new Blinky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].indexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-                voitureList.add(new Inky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].lastIndexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                voitureList.add(new Inky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].lastIndexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5));
+                voitureList.add(new Pinky(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5));
+                voitureList.add(new Clyde(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
             }
 
             for ( int compt = 0; compt < coinCount; compt++ )
@@ -584,6 +586,11 @@ public class Board extends JPanel implements ActionListener, Idirectional
     public void decCoinCount()
     {
         coinCount--;
+    }
+
+    public double getCompletion()
+    {
+        return (levels[level] - coinCount) * 1.0 / levels[level];
     }
 
     public boolean onTronc(Entity ent)
