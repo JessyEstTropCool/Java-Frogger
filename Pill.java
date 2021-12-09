@@ -13,6 +13,6 @@ public class Pill extends Entity implements Itriggerable
     @Override
     public void triggerAction(Board board)
     {
-        board.triggerInvincible();
+        board.getFrogger().triggerInvincible();
     }
 }

@@ -10,28 +10,31 @@ public class Blinky extends Voiture
     {
         super.Move(distance, board);
 
-        if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() && board.isRoad(board.getFrogger().getPosY()) && board.isRoad(board.getFrogger().getPosY() + board.getFrogger().getHeight()) ) 
+        if ( getDirection() != STOP )
         {
-            setPosY(board.getFrogger().getPosY());
-        }
-        else
-        {
-            if ( board.getFrogger().getPosY() > getPosY() ) 
+            if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() && board.isRoad(board.getFrogger().getPosY()) && board.isRoad(board.getFrogger().getPosY() + board.getFrogger().getHeight()) ) 
             {
-                setPosY(getPosY() + (int)(distance * getSpeed()));
-    
-                if ( board.isRoad(getPosY()) && !board.isRoad(getHeight() + getPosY()) )
-                {
-                    board.alignY(this);
-                }
+                setPosY(board.getFrogger().getPosY());
             }
-            else if ( board.getFrogger().getPosY() < getPosY() ) 
+            else
             {
-                if ( board.isRoad(getPosY()) && !board.isRoad(getPosY() - (int)(distance * getSpeed())) )
+                if ( board.getFrogger().getPosY() > getPosY() ) 
                 {
-                    board.alignY(this);
+                    setPosY(getPosY() + (int)(distance * getSpeed()));
+        
+                    if ( board.isRoad(getPosY()) && !board.isRoad(getHeight() + getPosY()) )
+                    {
+                        board.alignY(this);
+                    }
                 }
-                else setPosY(getPosY() - (int)(distance * getSpeed()));
+                else if ( board.getFrogger().getPosY() < getPosY() ) 
+                {
+                    if ( board.isRoad(getPosY()) && !board.isRoad(getPosY() - (int)(distance * getSpeed())) )
+                    {
+                        board.alignY(this);
+                    }
+                    else setPosY(getPosY() - (int)(distance * getSpeed()));
+                }
             }
         }
     }

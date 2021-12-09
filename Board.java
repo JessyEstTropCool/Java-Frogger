@@ -100,7 +100,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "Clyde"
     };
 
-    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, REGULAR_SPEED);
+    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, REGULAR_SPEED, INVINCIBLE_SPEED, INVINCIBLE_TIME);
 
     private int coinCount;
     private int bugCount;
@@ -112,14 +112,12 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private int level = 0;
     private int lives = START_LIVES;
     private boolean inGame = false;
-    //private boolean spawnedGoal = false;
     private boolean lost = false;
 
     private final int[] levels = { 5, 1, 2, 3 };
 
     private Timer gameTimer;
     private Timer introTimer;
-    private Timer invincTimer;
     private HashMap<String, Image> spritesMap;
     private Font hudFont;
     private FontMetrics hudMetrics;
@@ -128,7 +126,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private int score = 0;
     private int voidX = -1*B_WIDTH;
     private int voidY = -1*B_HEIGHT;
-    private int invincSeconds = 0;
 
     public Board() {
         
@@ -170,7 +167,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         introTimer = new Timer(PROMPT_TIME * 1000, loadNextLevel);
         introTimer.setRepeats(false); 
 
-        invincTimer = new Timer(1000, invincibleAction);
+        frogger.addListener(repaint);
     }
 
     @Override
@@ -179,6 +176,14 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
         doDrawing(g);
     }
+
+    private ActionListener repaint = new ActionListener()
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            repaint();
+        }
+    };
     
     private void doDrawing(Graphics g) {
         
@@ -240,7 +245,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             g.drawImage(spritesMap.get(goal.getType()), 0, VERT_OFFSET, this);
             g.drawImage(spritesMap.get(goal.getType()), B_WIDTH - DOT_SIZE, VERT_OFFSET, this);
             
-            g.drawImage(spritesMap.get( frogger.getType() + isInvincible() ), frogger.getPosX(), frogger.getPosY(), this);
+            g.drawImage(spritesMap.get( frogger.getType() ), frogger.getPosX(), frogger.getPosY(), this);
 
             //HUD
 
@@ -249,21 +254,19 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             g.setFont(hudFont);
             g.setColor(FORECOLOR);
-            g.drawString("Score : " + score, 0, (int)(DOT_SIZE * VERT_CENTER_TEXT));
-            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(DOT_SIZE * VERT_CENTER_TEXT));
-            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(DOT_SIZE * VERT_CENTER_TEXT));
+            g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
 
             for ( int compt = 0 ; compt < lives ; compt++ )
             {
                 g.drawImage(spritesMap.get("Coeur"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
             }
 
-            for ( int compt = 0 ; compt < invincSeconds ; compt++ )
+            for ( int compt = 0 ; compt < frogger.getInvincibleTime() ; compt++ )
             {
                 g.drawImage(spritesMap.get("Pill"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
             }
-
-            Toolkit.getDefaultToolkit().sync();
 
         } else {
 
@@ -271,8 +274,10 @@ public class Board extends JPanel implements ActionListener, Idirectional
             else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1), "Vies restantes : "+lives);
             else prompt(g, "Fin de jeu", "Score : "+score);
 
-            Toolkit.getDefaultToolkit().sync();
-        }        
+            
+        }    
+        
+        Toolkit.getDefaultToolkit().sync();
     }
     
     private void prompt(Graphics g, String prompt)
@@ -411,12 +416,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         inGame = false;
         gameTimer.stop();
 
-        if ( invincTimer.isRunning() )
-        {
-            invincTimer.stop();
-            invincSeconds = 0;
-            frogger.setSpeed(REGULAR_SPEED);
-        }
+        frogger.resetInvincible();
 
         level++;
 
@@ -433,12 +433,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         inGame = false;
         gameTimer.stop();
 
-        if ( invincTimer.isRunning() )
-        {
-            invincTimer.stop();
-            invincSeconds = 0;
-            frogger.setSpeed(REGULAR_SPEED);
-        }
+        frogger.resetInvincible();
 
         if ( lives > 0 ) 
         {
@@ -524,13 +519,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
         victim.setPosY(voidY);
     }
 
-    public void triggerInvincible()
-    {
-        invincSeconds = INVINCIBLE_TIME;
-        invincTimer.start();
-        frogger.setSpeed(INVINCIBLE_SPEED);
-    }
-
     public boolean isRoad(int posY)
     {
         return terrainTest(posY, ROAD);
@@ -551,35 +539,15 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         ent.setPosY(ent.getPosY() - ent.getPosY() % DOT_SIZE);
     }
-    
-    private ActionListener invincibleAction = new ActionListener()
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-            invincSeconds--;
-            
-            if ( invincSeconds <= 0 )
-            {
-                frogger.setSpeed(REGULAR_SPEED);
-                invincTimer.stop();
-            }
 
-            repaint();
-        }
-    };
-
-    public boolean isInvincible()
-    {
-        return invincSeconds > 0;
-    }
-
-    public MovingEntity getFrogger()
+    public Frog getFrogger()
     {
         return frogger;
     }
 
     public void incScore(int amount)
     {
+        if ( frogger.isInvincible() ) amount *= 2;
         score += amount;
     }
 
@@ -608,7 +576,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         //si frogger n'est pas aligné alors qu'il a une vitesse normale, on tente de le réaligner en donnant une vitesse moindre
         if ( ( (frogger.getPosY() % DOT_SIZE != 0 && (frogger.getDirection() == UP || frogger.getDirection() == DOWN)) 
         || (frogger.getPosX() % DOT_SIZE != 0 && (frogger.getDirection() == LEFT || frogger.getDirection() == RIGHT)) )
-        && invincSeconds <= 0 )
+        && !frogger.isInvincible() )
         {
             frogger.Move(DOT_SIZE / 2, this);
             //TODO switch case pour l'alignement

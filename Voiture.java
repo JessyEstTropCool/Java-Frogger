@@ -26,12 +26,12 @@ public class Voiture extends MovingEntity implements Itriggerable
     @Override
     public void triggerAction(Board board)
     {
-        if ( board.isInvincible() )
+        if ( board.getFrogger().isInvincible() )
         {
             board.SendToVoid(this);
-            setDirection(-1);
+            setDirection(STOP);
 
-            board.incScore(2);
+            board.incScore(1);
         }
         else board.loseLife();
     }

@@ -11,17 +11,15 @@ public class Clyde extends Voiture
     @Override
     public void Move(int distance, Board board)
     {
-        if ( Math.random() < SPEED_CHANGE_CHANCE ) 
+        if ( Math.random() < SPEED_CHANGE_CHANCE && getDirection() != STOP ) 
         {
             setSpeed( Math.random()/2 + 0.25 );
-            System.out.println("And there goes Clyde again");
         }
         
-        if ( Math.random() < DIRECTION_CHANGE_CHANCE ) 
+        if ( Math.random() < DIRECTION_CHANGE_CHANCE && getDirection() != STOP ) 
         {
             if ( getDirection() == LEFT ) setDirection(RIGHT);
             else setDirection(LEFT);
-            System.out.println("And switch");
         }
 
         super.Move(distance, board);
