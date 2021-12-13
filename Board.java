@@ -383,19 +383,38 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             if ( LEVEL_LAYOUTS[level].indexOf(ROAD) != -1)
             {
-                voitureList.add(new Blinky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].indexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
-                voitureList.add(new Inky(GetRandomXCoordinate(), VERT_OFFSET + LEVEL_LAYOUTS[level].lastIndexOf(ROAD) * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5));
-                voitureList.add(new Pinky(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5));
-                voitureList.add(new Clyde(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                Voiture[] voits = new Voiture[4];
+                voits[0] = new Blinky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25);
+                voits[1] = new Inky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5);
+                voits[2] = new Pinky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5);
+                voits[3] = new Clyde(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25);
+
+                for ( Voiture voit : voits)
+                {
+                    placeOnRoad(voit);
+                    voitureList.add(voit);
+                }
             }
 
+            Entity ent;
+
             for ( int compt = 0; compt < coinCount; compt++ )
-                collectibleList.add(new Coin(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
+            {
+                ent = new Coin(0, 0, DOT_SIZE);
+                placeEntity(ent);
+                collectibleList.add(ent);
+            }
 
             for ( int compt = 0; compt < bugCount; compt++ )
-                collectibleList.add(new Bug(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
+            {
+                ent = new Bug(0, 0, DOT_SIZE);
+                placeEntity(ent);
+                collectibleList.add(ent);
+            }
 
-            collectibleList.add(new Pill(GetRandomXCoordinate(), VERT_OFFSET + GetRandomYCoordinate(), DOT_SIZE));
+            ent = new Pill(0, 0, DOT_SIZE);
+            placeEntity(ent);
+            collectibleList.add(ent);
 
             startLevel();
         }
@@ -610,15 +629,29 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
     private int GetRandomYCoordinate() {
 
-        int r;
+        int r = (int) (Math.random() * (GRID_HEIGHT - 1)) * DOT_SIZE;
+        return VERT_OFFSET + r;
+    }
+
+    private void placeEntity(Entity ent)
+    {
+        do
+        {
+            ent.setPosX(GetRandomXCoordinate());
+            ent.setPosY(GetRandomYCoordinate());
+        } 
+        while ( !onTronc(ent) && isWater(ent.getPosY()) );
+    }
+
+    private void placeOnRoad(Entity ent)
+    {
+        ent.setPosX(GetRandomXCoordinate());
 
         do
         {
-            r = (int) (Math.random() * (GRID_HEIGHT - 1)) * DOT_SIZE;
-        }
-        while ( isWater(VERT_OFFSET + r) );
-
-        return r;
+            ent.setPosY(GetRandomYCoordinate());
+        } 
+        while ( !isRoad(ent.getPosY()) );
     }
 
     private class TAdapter extends KeyAdapter {
