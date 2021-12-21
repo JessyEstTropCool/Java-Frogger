@@ -640,7 +640,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             ent.setPosX(GetRandomXCoordinate());
             ent.setPosY(GetRandomYCoordinate());
         } 
-        while ( !onTronc(ent) && isWater(ent.getPosY()) );
+        while ( !onTronc(ent) && isWater(ent.getPosY()) && !ent.Collides(goal) );
     }
 
     private void placeOnRoad(Entity ent)
