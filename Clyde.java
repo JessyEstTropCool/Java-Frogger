@@ -26,5 +26,5 @@ public class Clyde extends Voiture
     }
 
     @Override
-    public String getType() { return "Clyde"; }
+    public String getType() { return "Clyde" + getDirection(); }
 }

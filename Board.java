@@ -20,8 +20,8 @@ import java.util.HashMap;
 public class Board extends JPanel implements ActionListener, Idirectional 
 {
     //Paramêtres
-    private final String MEDIA_PATH = "Images/";
-    private final int DOT_SIZE = 10;
+    private final String MEDIA_PATH = "20x20/";
+    private final int DOT_SIZE = 20;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
     private final int HUD_HEIGHT = 2;
@@ -45,7 +45,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
     private final int VERT_OFFSET = HUD_HEIGHT * DOT_SIZE;
     private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
-    //private final int RAND_POS = GRID_WIDTH - 1;
     private final int DELAY = 100;
     private final double VERT_CENTER_TEXT = 0.75;
 
@@ -64,16 +63,23 @@ public class Board extends JPanel implements ActionListener, Idirectional
         Coin.getPathToImage(), 
         Bug.getPathToImage(), 
         Pill.getPathToImage(), 
+        "pillPierre.png",
         Goal.getPathToImage(), 
         "goalDown.png", 
         "coeur.png",
+        "coeurVide.png",
         "tronc.png",
         "troncEau.png",
-        "car.png",
-        "redCar.png",
-        "purpleCar.png",
-        "blueCar.png",
-        "orangeCar.png",
+        "carL.png",
+        "carR.png",
+        "redCarL.png",
+        "redCarR.png",
+        "purpleCarL.png",
+        "purpleCarR.png",
+        "blueCarL.png",
+        "blueCarR.png",
+        "orangeCarL.png",
+        "orangeCarR.png"
     };
 
     private final String[] IMAGE_KEYS = { 
@@ -87,17 +93,24 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "Frogger"+RIGHT+true, 
         "Coin", 
         "Bug", 
-        "Pill",
+        "Pill"+false,
+        "Pill"+true,
         "Goal", 
         "GoalDown",
         "Coeur",
+        "CoeurVide",
         "Tronc",
         "TroncEau",
-        "Voiture",
-        "Blinky",
-        "Pinky",
-        "Inky",
-        "Clyde"
+        "Voiture"+LEFT,
+        "Voiture"+RIGHT,
+        "Blinky"+LEFT,
+        "Blinky"+RIGHT,
+        "Pinky"+LEFT,
+        "Pinky"+RIGHT,
+        "Inky"+LEFT,
+        "Inky"+RIGHT,
+        "Clyde"+LEFT,
+        "Clyde"+RIGHT
     };
 
     private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, REGULAR_SPEED, INVINCIBLE_SPEED, INVINCIBLE_TIME);
@@ -258,9 +271,10 @@ public class Board extends JPanel implements ActionListener, Idirectional
             g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
             g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
 
-            for ( int compt = 0 ; compt < lives ; compt++ )
+            for ( int compt = 0 ; compt < START_LIVES ; compt++ )
             {
-                g.drawImage(spritesMap.get("Coeur"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
+                if ( compt >= lives ) g.drawImage(spritesMap.get("CoeurVide"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
+                else g.drawImage(spritesMap.get("Coeur"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
             }
 
             for ( int compt = 0 ; compt < frogger.getInvincibleTime() ; compt++ )
@@ -662,26 +676,34 @@ public class Board extends JPanel implements ActionListener, Idirectional
             if (inGame)
             {
                 int key = e.getKeyCode();
+                boolean actionDone = false;
 
                 if (key == KeyEvent.VK_LEFT) {
                     frogger.setDirection(LEFT);
+                    actionDone = true;
                 }
     
                 if (key == KeyEvent.VK_RIGHT) {
                     frogger.setDirection(RIGHT);
+                    actionDone = true;
                 }
     
                 if (key == KeyEvent.VK_UP) {
                     frogger.setDirection(UP);
+                    actionDone = true;
                 }
     
                 if (key == KeyEvent.VK_DOWN) {
                     frogger.setDirection(DOWN);
+                    actionDone = true;
                 }
-    
-                move();
-                checkCollectibles();
-                repaint();
+
+                if (actionDone)
+                {
+                    move();
+                    checkCollectibles();
+                    repaint();
+                }
             }
         }
     }

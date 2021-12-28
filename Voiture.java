@@ -21,7 +21,7 @@ public class Voiture extends MovingEntity implements Itriggerable
     }
 
     @Override
-    public String getType() { return "Voiture"; }
+    public String getType() { return "Voiture" + getDirection(); }
 
     @Override
     public void triggerAction(Board board)

@@ -16,5 +16,5 @@ public class Inky extends Voiture
     }
 
     @Override
-    public String getType() { return "Inky"; }
+    public String getType() { return "Inky" + getDirection(); }
 }

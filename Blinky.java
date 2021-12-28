@@ -40,5 +40,5 @@ public class Blinky extends Voiture
     }
 
     @Override
-    public String getType() { return "Blinky"; }
+    public String getType() { return "Blinky" + getDirection(); }
 }

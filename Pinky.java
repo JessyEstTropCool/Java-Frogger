@@ -18,5 +18,5 @@ public class Pinky extends Voiture
     }
 
     @Override
-    public String getType() { return "Pinky"; }
+    public String getType() { return "Pinky" + getDirection(); }
 }
