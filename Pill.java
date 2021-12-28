@@ -1,12 +1,12 @@
 public class Pill extends Entity implements Itriggerable
 {
-    private static final int PIERRE_CHANCE = 1;
+    private static final int PIERRE_CHANCE = 20;
     private boolean pierre;
 
     public Pill(int posX, int posY, int size)
     {
         super(posX, posY, size);
-        
+
         if ( (int)(Math.random() * PIERRE_CHANCE) == 0 ) pierre = true;
         else pierre = false;
     }

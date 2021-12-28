@@ -31,6 +31,11 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final double INVINCIBLE_SPEED = 0.5;
     private final double REGULAR_SPEED = 1;
 
+    private final int GOAL_BAND_HEIGHT = 3;
+    private final int GOAL_BAND_POS = 8;
+    private final int GOAL_BAND_DOWN_HEIGHT = 2;
+    private final int GOAL_BAND_DOWN_POS = 2;
+
     private final String[] LEVEL_LAYOUTS = {
         "GGGGWWWWWWWWWWWWWWWWWWWWWWW",
         "GGGGRRRRGGGRRRGGGRRRGGGRRRR",
@@ -247,12 +252,12 @@ public class Board extends JPanel implements ActionListener, Idirectional
             if (goal.getReady())
             {
                 g.setColor(Color.RED);
-                g.fillRect(0, VERT_OFFSET + DOT_SIZE - 3, B_WIDTH, 2);
+                g.fillRect(0, VERT_OFFSET + DOT_SIZE - GOAL_BAND_POS, B_WIDTH, GOAL_BAND_HEIGHT);
             }
             else
             {
                 g.setColor(Color.GRAY);
-                g.fillRect(0, VERT_OFFSET + DOT_SIZE - 1, B_WIDTH, 1);
+                g.fillRect(0, VERT_OFFSET + DOT_SIZE - GOAL_BAND_DOWN_POS, B_WIDTH, GOAL_BAND_DOWN_HEIGHT);
             }
 
             g.drawImage(spritesMap.get(goal.getType()), 0, VERT_OFFSET, this);
@@ -270,6 +275,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
             g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
             g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
             g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("    x "+coinCount, (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawImage(spritesMap.get("Coin"), (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE, this);
 
             for ( int compt = 0 ; compt < START_LIVES ; compt++ )
             {
@@ -279,7 +286,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             for ( int compt = 0 ; compt < frogger.getInvincibleTime() ; compt++ )
             {
-                g.drawImage(spritesMap.get("Pill"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
+                g.drawImage(spritesMap.get("Pill"+false), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
             }
 
         } else {
@@ -654,7 +661,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             ent.setPosX(GetRandomXCoordinate());
             ent.setPosY(GetRandomYCoordinate());
         } 
-        while ( !onTronc(ent) && isWater(ent.getPosY()) && !ent.Collides(goal) );
+        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.Collides(goal) );
     }
 
     private void placeOnRoad(Entity ent)
