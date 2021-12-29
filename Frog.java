@@ -4,19 +4,13 @@ import java.awt.event.ActionListener;
 
 public class Frog extends MovingEntity implements ActionListener
 {
-    private final double FULL_SPEED;
-    private final double SLOW_SPEED;
-    private final int INVINCIBLE_TIME;
-
     private int invincSeconds;
+    private double speedFactor;
     private Timer invincTimer = new Timer(1000, this);
 
-    public Frog(int posX, int posY, int width, int height, int direction, double fullSpeed, double slowSpeed, int invincTime)
+    public Frog(int posX, int posY, int width, int height, int direction, double speed)
     {
-        super(posX, posY, width, height, direction, fullSpeed);
-        this.FULL_SPEED = fullSpeed;
-        this.SLOW_SPEED = slowSpeed;
-        this.INVINCIBLE_TIME = invincTime;
+        super(posX, posY, width, height, direction, speed);
     }
 
     @Override
@@ -48,16 +42,18 @@ public class Frog extends MovingEntity implements ActionListener
         
         if ( invincSeconds <= 0 )
         {
-            setSpeed(FULL_SPEED);
-            invincTimer.stop();
+            resetInvincible();
         }
     }
 
-    public void triggerInvincible()
+    public void triggerInvincible(int time, double speedFactor)
     {
-        invincSeconds = INVINCIBLE_TIME;
+        invincSeconds = time;
         invincTimer.start();
-        setSpeed(SLOW_SPEED);
+
+        this.speedFactor = speedFactor;
+
+        setSpeed(getSpeed() * speedFactor);
     }
 
     public void resetInvincible()
@@ -66,7 +62,7 @@ public class Frog extends MovingEntity implements ActionListener
         {
             invincTimer.stop();
             invincSeconds = 0;
-            setSpeed(FULL_SPEED);
+            setSpeed(getSpeed() / speedFactor);
         }
     }
 

@@ -25,11 +25,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
     private final int HUD_HEIGHT = 2;
-    private final int INVINCIBLE_TIME = 10;
     private final int PROMPT_TIME = 2;
     private final int START_LIVES = 3;
-    private final double INVINCIBLE_SPEED = 0.5;
-    private final double REGULAR_SPEED = 1;
 
     private final int GOAL_BAND_HEIGHT = 3;
     private final int GOAL_BAND_POS = 8;
@@ -37,20 +34,23 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int GOAL_BAND_DOWN_POS = 2;
 
     private final String[] LEVEL_LAYOUTS = {
-        "GGGGWWWWWWWWWWWWWWWWWWWWWWW",
+        "GGGGWWWWWWWWGGRRRRGGWWWWWWW",
         "GGGGRRRRGGGRRRGGGRRRGGGRRRR",
         "GGGGRRRRRGRWWWWWRGRRRGGGRR",
         "GGGGRRRRRRGGGGRRRRRRGGGGRRR"
     };
 
+    private final int[] levels = { 5, 1, 2, 3 };
+
     //Constantes pour le code
-    private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
+    private final char ROAD = 'R', GRASS = 'G', WATER = 'W', OBSTACLE = 'O';
 
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
     private final int VERT_OFFSET = HUD_HEIGHT * DOT_SIZE;
     private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
     private final int DELAY = 100;
+    private final int ROAD_SEPARATOR_OFFSET = DOT_SIZE / (2 - GRID_WIDTH % 2);
     private final double VERT_CENTER_TEXT = 0.75;
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
@@ -118,7 +118,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "Clyde"+RIGHT
     };
 
-    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, REGULAR_SPEED, INVINCIBLE_SPEED, INVINCIBLE_TIME);
+    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
 
     private int coinCount;
     private int bugCount;
@@ -132,10 +132,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private boolean inGame = false;
     private boolean lost = false;
 
-    private final int[] levels = { 5, 1, 2, 3 };
-
     private Timer gameTimer;
-    private Timer introTimer;
+    private Timer promptTimer;
     private HashMap<String, Image> spritesMap;
     private Font hudFont;
     private FontMetrics hudMetrics;
@@ -182,8 +180,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
         gameTimer = new Timer(DELAY, this);
 
-        introTimer = new Timer(PROMPT_TIME * 1000, loadNextLevel);
-        introTimer.setRepeats(false); 
+        //promptTimer = new Timer(PROMPT_TIME * 1000, loadNextLevel);
+        //promptTimer.setRepeats(false); 
 
         frogger.addListener(repaint);
     }
@@ -221,13 +219,36 @@ public class Board extends JPanel implements ActionListener, Idirectional
                             g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
             
                             g.setColor(Color.YELLOW);
-                            g.fillRect(0, VERT_OFFSET - 1 + compt * DOT_SIZE, B_WIDTH, 2);
-                            g.fillRect(0, VERT_OFFSET + (compt+1) * DOT_SIZE, B_WIDTH, 2);
+
+                            if ( compt == 0 || LEVEL_LAYOUTS[level].charAt(compt-1) != ROAD )
+                                g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE - 1, B_WIDTH, 2);
+                            else
+                            {
+                                g.setColor(Color.WHITE);
+
+                                for ( int compt2 = 0; compt2 < GRID_WIDTH / 2; compt2++)
+                                {
+                                    g.fillRect(ROAD_SEPARATOR_OFFSET + compt2 * DOT_SIZE * 2, VERT_OFFSET + compt * DOT_SIZE - 1, DOT_SIZE, 2);
+                                }
+                            }
+
+                            g.setColor(Color.YELLOW);
+                            
+                            if ( compt == LEVEL_LAYOUTS[level].length() - 1 || LEVEL_LAYOUTS[level].charAt(compt+1) != ROAD)
+                                g.fillRect(0, VERT_OFFSET + (compt+1) * DOT_SIZE - 1, B_WIDTH, 2);
                             break;
 
                         case WATER:
                             g.setColor(Color.CYAN);
                             g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
+
+                            if ( compt == 0 || LEVEL_LAYOUTS[level].charAt(compt-1) != WATER )
+                            {
+                                g.setColor(Color.decode("#7C4D26"));
+                                g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, 5);
+                                g.setColor(Color.WHITE);
+                                g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE + 5, B_WIDTH, 2);
+                            }
                             break;
                     }
                 }
@@ -270,14 +291,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, B_WIDTH, VERT_OFFSET);
 
-            g.setFont(hudFont);
-            g.setColor(FORECOLOR);
-            g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("    x "+coinCount, (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawImage(spritesMap.get("Coin"), (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE, this);
-
             for ( int compt = 0 ; compt < START_LIVES ; compt++ )
             {
                 if ( compt >= lives ) g.drawImage(spritesMap.get("CoeurVide"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
@@ -289,13 +302,19 @@ public class Board extends JPanel implements ActionListener, Idirectional
                 g.drawImage(spritesMap.get("Pill"+false), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
             }
 
-        } else {
-
-            if ( lost ) prompt(g, "Game Over", new String[]{"", "Score : "+score, "Niveau : " + (level + 1)});
+            g.setFont(hudFont);
+            g.setColor(FORECOLOR);
+            g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("    x "+coinCount, (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawImage(spritesMap.get("Coin"), (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE, this);
+        } 
+        else 
+        {
+            if ( lost ) prompt(g, "Game Over", new String[]{"Score : "+score, "Niveau : " + (level + 1)});
             else if ( level < levels.length ) prompt(g, "Niveau " + (level + 1), "Vies restantes : "+lives);
-            else prompt(g, "Fin de jeu", "Score : "+score);
-
-            
+            else prompt(g, "Fin de jeu", new String[]{"Vies : " + lives, "Score : "+score});
         }    
         
         Toolkit.getDefaultToolkit().sync();
@@ -315,7 +334,10 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         Font promptFont = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
         FontMetrics metr = getFontMetrics(promptFont);
+
         int totalSize = promptFont.getSize() + subPrompts.length * hudFont.getSize();
+        if (subPrompts.length > 0) totalSize += hudFont.getSize();
+
         int strY = (W_HEIGHT - totalSize) / 2;
 
         g.setColor(Color.BLACK);
@@ -326,6 +348,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
         g.drawString(prompt, (B_WIDTH - metr.stringWidth(prompt)) / 2, (int)(strY + VERT_CENTER_TEXT * promptFont.getSize()) );
 
         strY += promptFont.getSize();
+        if (subPrompts.length > 0) strY += hudFont.getSize();
+
         g.setFont(hudFont);
 
         for ( String line : subPrompts )
@@ -335,23 +359,31 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
-    private void restartGame()
+    private ActionListener restartGame = new ActionListener()
     {
-        if ( score > highScore ) highScore = score;
+        public void actionPerformed(ActionEvent e)
+        {
+            if ( score > highScore ) highScore = score;
 
-        score = 0;
-        level = 0;
-        lives = START_LIVES;
-        lost = false;
-
-        initGame();
-    }
+            score = 0;
+            level = 0;
+            lives = START_LIVES;
+            lost = false;
+            
+            repaint();
+            
+            initGame();
+        }
+    };
     
     private void initGame() 
     {
         System.out.println("We initin' " + level);
 
-        introTimer.start();
+        promptTimer = new Timer(PROMPT_TIME * 1000, loadNextLevel);
+        promptTimer.setRepeats(false); 
+
+        promptTimer.start();
 
         repaint();
     }
@@ -444,7 +476,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private void startLevel()
     {
         System.out.println("We startin' " + level);
-        introTimer.stop();
+        promptTimer.stop();
         gameTimer.start();
         repaint();
     }
@@ -464,7 +496,10 @@ public class Board extends JPanel implements ActionListener, Idirectional
         else 
         {
             repaint();
-            restartGame();
+
+            promptTimer = new Timer(PROMPT_TIME * 1000, restartGame);
+            promptTimer.setRepeats(false); 
+            promptTimer.start();
         }
     }
 
@@ -489,7 +524,9 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             System.out.println("We actually losin' ");
 
-            restartGame();
+            promptTimer = new Timer(PROMPT_TIME * 1000, restartGame);
+            promptTimer.setRepeats(false); 
+            promptTimer.start();
         }
     }
 

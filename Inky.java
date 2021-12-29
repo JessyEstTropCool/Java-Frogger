@@ -10,7 +10,7 @@ public class Inky extends Voiture
     @Override
     public void Move(int distance, Board board)
     {
-        if ( Collides(getPosX(), board.getFrogger().getPosY()) ) distance *= SAME_LANE_FACTOR;
+        if ( Collides(getPosX(), board.getFrogger().getPosY()) || Collides(getPosX(), board.getFrogger().getPosY() + board.getFrogger().getHeight() - 1) ) distance *= SAME_LANE_FACTOR;
 
         super.Move(distance, board);
     }
