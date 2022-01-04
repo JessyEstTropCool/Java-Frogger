@@ -5,8 +5,6 @@ public class Coin extends Entity implements Itriggerable
         super(posX, posY, size);
     }
 
-    public static String getPathToImage() { return "coin.png"; }
-
     @Override
     public String getType() { return "Coin"; }
 

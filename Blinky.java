@@ -1,5 +1,7 @@
 public class Blinky extends Voiture 
 {
+    private static final double SIDE_MOUVEMENT_FACTOR = 0.5;
+
     public Blinky(int posX, int posY, int width, int height, int direction, double speed)
     {
         super(posX, posY, width, height, direction, speed);
@@ -20,7 +22,7 @@ public class Blinky extends Voiture
             {
                 if ( board.getFrogger().getPosY() > getPosY() ) 
                 {
-                    setPosY(getPosY() + (int)(distance * getSpeed()));
+                    setPosY(getPosY() + (int)(distance * getSpeed() * SIDE_MOUVEMENT_FACTOR));
         
                     if ( board.isRoad(getPosY()) && !board.isRoad(getHeight() + getPosY()) )
                     {
@@ -33,7 +35,7 @@ public class Blinky extends Voiture
                     {
                         board.alignY(this);
                     }
-                    else setPosY(getPosY() - (int)(distance * getSpeed()));
+                    else setPosY(getPosY() - (int)(distance * getSpeed() * SIDE_MOUVEMENT_FACTOR));
                 }
             }
         }

@@ -8,8 +8,6 @@ public class Goal extends Entity implements Itriggerable
         this.ready = ready;
     }
 
-    public static String getPathToImage() { return "goal.png"; }
-
     public boolean getReady() { return ready; }
     public void setReady(boolean ready) { this.ready = ready; }
     

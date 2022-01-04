@@ -18,21 +18,38 @@ public class Frog extends MovingEntity implements ActionListener
     {
         switch (getDirection())
         {
+            //TODO fix collision when invincible + move to Board class 
             case LEFT:
-                setPosX(getPosX()-(int)(distance * getSpeed()));
+                if (!board.isWall(getPosX()-(int)(distance * getSpeed()), getPosY())
+                && !board.isWall(getPosX()+getWidth()-1-(int)(distance * getSpeed()), getPosY()))
+                    setPosX(getPosX()-(int)(distance * getSpeed()));
+                else
+                    board.alignX(this);
                 break;
 
             case RIGHT:
-                setPosX(getPosX()+(int)(distance * getSpeed()));
+                if (!board.isWall(getPosX()+(int)(distance * getSpeed()), getPosY())
+                && !board.isWall(getPosX()+getWidth()-1+(int)(distance * getSpeed()), getPosY()))
+                    setPosX(getPosX()+(int)(distance * getSpeed()));
+                else
+                    board.alignX(this);
                 break;
 
             case UP:
-                setPosY(getPosY()-(int)(distance * getSpeed()));
+                if (!board.isWall(getPosX(), getPosY()-(int)(distance * getSpeed()))
+                && !board.isWall(getPosX(), getPosY()+getHeight()-1-(int)(distance * getSpeed())))
+                    setPosY(getPosY()-(int)(distance * getSpeed()));
+                else
+                    board.alignY(this);
                 break;
 
             case DOWN:
-                setPosY(getPosY()+(int)(distance * getSpeed()));
-            break;
+                if (!board.isWall(getPosX(), getPosY()+(int)(distance * getSpeed()))
+                && !board.isWall(getPosX(), getPosY()+getHeight()-1+(int)(distance * getSpeed())))
+                    setPosY(getPosY()+(int)(distance * getSpeed()));
+                else
+                    board.alignY(this);
+                break;
         }
     }
     

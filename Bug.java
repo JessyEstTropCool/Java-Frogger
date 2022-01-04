@@ -1,18 +1,16 @@
-public class Bug extends Entity implements Itriggerable
+public abstract class Bug extends Entity implements Itriggerable
 {
-    public Bug(int posX, int posY, int size)
+    private int points;
+
+    public Bug(int posX, int posY, int size, int points)
     {
         super(posX, posY, size);
+        this.points = points;
     }
-
-    public static String getPathToImage() { return "insect.png"; }
-    
-    @Override
-    public String getType() { return "Bug"; }
 
     @Override
     public void triggerAction(Board board)
     {
-        board.incScore(2);
+        board.incScore(points);
     }
 }
