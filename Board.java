@@ -19,12 +19,11 @@ import java.util.HashMap;
 
 public class Board extends JPanel implements ActionListener, Idirectional 
 {
-    //Paramêtres
     private final String MEDIA_PATH = "20x20/";
     private final int DOT_SIZE = 20;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
-    private final int HUD_HEIGHT = 2;
+    private final int HUD_HEIGHT = 20;
     private final int PROMPT_TIME = 2;
     private final int START_LIVES = 3;
     private final int LIVES_POINTS = 50;
@@ -37,26 +36,25 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int WATER_EDGE_HEIGHT = 5;
     private final int FOAM_LINE_HEIGHT = 2;
 
-    //Constantes pour le code
     private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
 
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
-    private final int VERT_OFFSET = HUD_HEIGHT * DOT_SIZE;
-    private final int W_HEIGHT = B_HEIGHT + VERT_OFFSET;
+    private final int W_HEIGHT = B_HEIGHT + HUD_HEIGHT;
     private final int DELAY = 100;
     private final int ROAD_SEPARATOR_OFFSET = DOT_SIZE / (2 - GRID_WIDTH % 2);
     private final double VERT_CENTER_TEXT = 0.75;
+    private final int VOID_X = -1*B_WIDTH;
+    private final int VOID_Y = -1*B_HEIGHT;
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
 
-    //TODO skip ligne de goal et start
     private final Level[] LEVELS = new Level[]{
-        new Level("GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 4, 0, 2, 2, 2 }, 3, 1, 0, BACKCOLOR),
-        new Level("GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 0, 1, 0, 0, 0 }, 2, 1, 1, new ColorUIResource(32, 128, 128)),
-        new Level("GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 6, 1, 1, 1, 1 }, 4, 2, 2, BACKCOLOR),
-        new Level("GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 4, 1, 2, 2, 1 }, 5, 2, 3, new ColorUIResource(128, 128, 128))
+        new Level("Autoroute de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 4, 0, 2, 2, 2 }, 3, 1, 1, BACKCOLOR),
+        new Level("Circuit de F1", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 1, 16, 1, 1, 1 }, 2, 2, 1, new ColorUIResource(32, 128, 128)),
+        new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 6, 1, 1, 1, 1 }, 4, 2, 2, BACKCOLOR),
+        new Level("Centre-ville", "GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 4, 1, 2, 2, 1 }, 5, 2, 3, new ColorUIResource(128, 128, 128))
     };
 
     private final String[] IMAGE_FILENAMES = { 
@@ -81,6 +79,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "tronc.png",
         "troncEau.png",
         "bush.png",
+        "bushFleur.png",
+        "bushFruit.png",
         "carL.png",
         "carR.png",
         "redCarL.png",
@@ -114,7 +114,9 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "CoeurVide",
         "Tronc",
         "TroncEau",
-        "Buisson",
+        "Bush"+0,
+        "Bush"+1,
+        "Bush"+2,
         "Voiture"+LEFT,
         "Voiture"+RIGHT,
         "Blinky"+LEFT,
@@ -127,15 +129,13 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "Clyde"+RIGHT
     };
 
-    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 2);
-
-    private int[][] collision = new int[GRID_WIDTH][GRID_HEIGHT];
+    private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
 
     private int coinCount;
-    //private int bugCount;
     private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
     private ArrayList<Tronc> troncList;
+    private ArrayList<Entity> obstacleList;
     private Goal goal;
 
     private int level = 0;
@@ -143,64 +143,54 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private boolean inGame = false;
     private boolean lost = false;
 
-    private Timer gameTimer;
+    private Timer gameTimer = new Timer(DELAY, this);;
     private Timer promptTimer;
     private HashMap<String, Image> spritesMap;
-    private Font hudFont;
-    private FontMetrics hudMetrics;
+    private Font hudFont = new Font("Helvetica", Font.BOLD, DOT_SIZE);
+    private FontMetrics hudMetrics = getFontMetrics(hudFont);
 
     private int highScore = 0;
     private int score = 0;
-    private int voidX = -1*B_WIDTH;
-    private int voidY = -1*B_HEIGHT;
 
-    public Board() {
-        
+    public Board() 
+    {        
         initBoard();
     }
     
-    private void initBoard() {
-
+    private void initBoard() 
+    {
         addKeyListener(new TAdapter());
         setBackground(BACKCOLOR);
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, W_HEIGHT));
+        frogger.addListener(repaint);
         loadImages();
-        setVariables();
         initGame();
     }
 
-    private void loadImages() {
-
+    //charge les graphismes du jeu tel que IMAGE_KEYS -> IMAGE_FILENAMES dans spritesMap, Attention pour éviter les erreurs ils doivent être de même longueur et dans le même ordre
+    private void loadImages() 
+    {
         spritesMap = new HashMap<String, Image>();
         ImageIcon ii;
-        int length = ( IMAGE_FILENAMES.length > IMAGE_KEYS.length )? IMAGE_KEYS.length : IMAGE_FILENAMES.length;
 
-        for ( int compt = 0; compt < length; compt++ )
+        for ( int compt = 0; compt < IMAGE_FILENAMES.length; compt++ )
         {
             ii = new ImageIcon(MEDIA_PATH+IMAGE_FILENAMES[compt]);
             spritesMap.put(IMAGE_KEYS[compt], ii.getImage());
         }
     }
 
-    private void setVariables()
-    {
-        hudFont = new Font("Helvetica", Font.BOLD, DOT_SIZE);
-        hudMetrics = getFontMetrics(hudFont);
-
-        gameTimer = new Timer(DELAY, this);
-
-        frogger.addListener(repaint);
-    }
-
     @Override
-    public void paintComponent(Graphics g) {
+    public void paintComponent(Graphics g) 
+    {
         super.paintComponent(g);
 
         doDrawing(g);
     }
 
+    //listener servant a repeindre le board avec un timer, utilisé avec le timer Frog, pour afficher la progression de l'invincibilité
     private ActionListener repaint = new ActionListener()
     {
         public void actionPerformed(ActionEvent e)
@@ -209,69 +199,74 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     };
     
-    private void doDrawing(Graphics g) {
-        
-        if (inGame) {
+    //fonction principale d'affichage graphique, affiche le jeu si il y a partie en cours, sinon affiche un prompt adéquoi
+    private void doDrawing(Graphics g)
+    {        
+        //la variable inGame dicte si une partie est en cours
+        if (inGame) 
+        {
+            //partie en cours
 
-            if ( level < LEVELS.length )
+            if ( level < LEVELS.length ) //ne devrait jamais arriver mais on vérifie si on dépasse le nombre de niveaux préparé
             {
                 for ( int compt = 0; compt < GRID_HEIGHT; compt++ )
                 {
-                    if ( compt < LEVELS[level].LAYOUT.length() && LEVELS[level].LAYOUT.charAt(compt) != GRASS)
+                    //on considère que l'herbe est la même chose que ce qui remplit ce qui n'est pas couvert par le layout du niveau (où ici on ne doit rien afficher de plus)
+                    if ( compt < LEVELS[level].getLayout().length() && LEVELS[level].getLayout().charAt(compt) != GRASS) 
                     {
-                        switch (LEVELS[level].LAYOUT.charAt(compt))
+                        switch (LEVELS[level].getLayout().charAt(compt))
                         {
                             case ROAD:
                                 g.setColor(Color.BLACK);
-                                g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
+                                g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
                 
                                 g.setColor(Color.YELLOW);
 
-                                if ( compt == 0 || LEVELS[level].LAYOUT.charAt(compt-1) != ROAD )
-                                    g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE - 1, B_WIDTH, 2);
-                                else
+                                if ( compt == 0 || LEVELS[level].getLayout().charAt(compt-1) != ROAD ) //ligne jaune au dessus si on commence la route
+                                    g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE - 1, B_WIDTH, 2);
+                                else                                                                    //sinon on fait un séparateur fait de plusieurs lignes blanches
                                 {
                                     g.setColor(Color.WHITE);
 
                                     for ( int compt2 = 0; compt2 < GRID_WIDTH / 2; compt2++)
                                     {
-                                        g.fillRect(ROAD_SEPARATOR_OFFSET + compt2 * DOT_SIZE * 2, VERT_OFFSET + compt * DOT_SIZE - 1, DOT_SIZE, 2);
+                                        g.fillRect(ROAD_SEPARATOR_OFFSET + compt2 * DOT_SIZE * 2, HUD_HEIGHT + compt * DOT_SIZE - 1, DOT_SIZE, 2); //TODO hauteur de séparateur ?
                                     }
                                 }
 
-                                g.setColor(Color.YELLOW);
-                                
-                                if ( compt == LEVELS[level].LAYOUT.length() - 1 || LEVELS[level].LAYOUT.charAt(compt+1) != ROAD)
-                                    g.fillRect(0, VERT_OFFSET + (compt+1) * DOT_SIZE - 1, B_WIDTH, 2);
+                                if ( compt == LEVELS[level].getLayout().length() - 1 || LEVELS[level].getLayout().charAt(compt+1) != ROAD) //ligne jaune en dessous, si on fini la route
+                                {
+                                    g.setColor(Color.YELLOW);
+                                    g.fillRect(0, HUD_HEIGHT + (compt+1) * DOT_SIZE - 1, B_WIDTH, 2);
+                                }
                                 break;
 
                             case WATER:
                                 g.setColor(Color.CYAN);
-                                g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
+                                g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
 
-                                if ( compt == 0 || LEVELS[level].LAYOUT.charAt(compt-1) != WATER )
+                                if ( compt == 0 || LEVELS[level].getLayout().charAt(compt-1) != WATER ) //si on commence une rivière, on marque le bord
                                 {
-                                    g.setColor(Color.decode("#7C4D26"));
-                                    g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE, B_WIDTH, WATER_EDGE_HEIGHT);
+                                    g.setColor(Color.decode("#7C4D26")); //TODO littéral !!!!!!!
+                                    g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, WATER_EDGE_HEIGHT);
                                     g.setColor(Color.WHITE);
-                                    g.fillRect(0, VERT_OFFSET + compt * DOT_SIZE + WATER_EDGE_HEIGHT, B_WIDTH, FOAM_LINE_HEIGHT);
+                                    g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE + WATER_EDGE_HEIGHT, B_WIDTH, FOAM_LINE_HEIGHT);
                                 }
                                 break;
-                        }
-                    }
-                    else
-                    {
-                        for ( int comptx = 0; comptx < GRID_WIDTH; comptx++ )
-                        {
-                            if (collision[comptx][compt] == 1) g.drawImage(spritesMap.get("Buisson"), comptx * DOT_SIZE, VERT_OFFSET + compt * DOT_SIZE, this);
                         }
                     }
                 }
             }
 
+            //On affiche toutes les entités
+            for ( Entity obs : obstacleList )
+            {
+                g.drawImage(spritesMap.get(obs.getType()), obs.getPosX(), obs.getPosY(), this);
+            }
+
             for ( Tronc tron : troncList )
             {
-                if (tron.Collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getPosX(), tron.getPosY(), this);
+                if (tron.Collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getPosX(), tron.getPosY(), this); //TODO distinction true false ?
                 else g.drawImage(spritesMap.get(tron.getType()), tron.getPosX(), tron.getPosY(), this);
             }
 
@@ -285,26 +280,37 @@ public class Board extends JPanel implements ActionListener, Idirectional
                 g.drawImage(spritesMap.get(coll.getType()), coll.getPosX(), coll.getPosY(), this);
             }
 
+            //ligne du goal
             if (goal.getReady())
             {
+                //goal activé
                 g.setColor(Color.RED);
-                g.fillRect(0, VERT_OFFSET + DOT_SIZE - GOAL_BAND_POS, B_WIDTH, GOAL_BAND_HEIGHT);
+                g.fillRect(0, HUD_HEIGHT + DOT_SIZE - GOAL_BAND_POS, B_WIDTH, GOAL_BAND_HEIGHT);
             }
             else
             {
+                //goal déactivé
                 g.setColor(Color.GRAY);
-                g.fillRect(0, VERT_OFFSET + DOT_SIZE - GOAL_BAND_DOWN_POS, B_WIDTH, GOAL_BAND_DOWN_HEIGHT);
+                g.fillRect(0, HUD_HEIGHT + DOT_SIZE - GOAL_BAND_DOWN_POS, B_WIDTH, GOAL_BAND_DOWN_HEIGHT);
             }
 
-            g.drawImage(spritesMap.get(goal.getType()), 0, VERT_OFFSET, this);
-            g.drawImage(spritesMap.get(goal.getType()), B_WIDTH - DOT_SIZE, VERT_OFFSET, this);
+            g.drawImage(spritesMap.get(goal.getType()), 0, HUD_HEIGHT, this);
+            g.drawImage(spritesMap.get(goal.getType()), B_WIDTH - DOT_SIZE, HUD_HEIGHT, this);
             
             g.drawImage(spritesMap.get( frogger.getType() ), frogger.getPosX(), frogger.getPosY(), this);
 
-            //HUD
+            //HUD, affiché en dernier pour qu'il soit toujours au dessus
 
+            //background
             g.setColor(Color.BLACK);
-            g.fillRect(0, 0, B_WIDTH, VERT_OFFSET);
+            g.fillRect(0, 0, B_WIDTH, HUD_HEIGHT);
+
+            //texte et icones
+            g.setFont(hudFont);
+            g.setColor(FORECOLOR);
+
+            g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
 
             for ( int compt = 0 ; compt < START_LIVES ; compt++ )
             {
@@ -312,44 +318,39 @@ public class Board extends JPanel implements ActionListener, Idirectional
                 else g.drawImage(spritesMap.get("Coeur"), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, 0, this);
             }
 
+            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("    x "+coinCount, (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawImage(spritesMap.get("Coin"), (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE, this);
+
             for ( int compt = 0 ; compt < frogger.getInvincibleTime() ; compt++ )
             {
                 g.drawImage(spritesMap.get("Pill"+false), B_WIDTH - DOT_SIZE - compt * DOT_SIZE, DOT_SIZE, this);
             }
-
-            g.setFont(hudFont);
-            g.setColor(FORECOLOR);
-            g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("Meilleur score : " + highScore, 0, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("    x "+coinCount, (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE + (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawImage(spritesMap.get("Coin"), (B_WIDTH - getFontMetrics(hudFont).stringWidth("    x "+coinCount)) / 2, DOT_SIZE, this);
         } 
         else 
         {
+            //si on est pas en partie, on affiche un Game Over, le prochain niveau, ou la fin du jeu
             if ( lost ) prompt(g, "Game Over", new String[]{"Score : "+score, "Niveau : " + (level + 1)});
-            else if ( level < LEVELS.length ) prompt(g, "Niveau " + (level + 1), "Vies restantes : "+lives);
+            else if ( level < LEVELS.length ) prompt(g, "Niveau " + (level + 1), LEVELS[level].getName());
             else prompt(g, "Fin de jeu", new String[]{"Vies : " + lives, "Score : "+score});
         }    
         
         Toolkit.getDefaultToolkit().sync();
     }
-    
-    /*private void prompt(Graphics g, String prompt)
-    {
-        prompt(g, prompt, new String[0]);
-    }*/
 
+    //Raccourci pour une seule sous ligne
     private void prompt(Graphics g, String prompt, String subPrompt)
     {
         prompt(g, prompt, new String[]{subPrompt});
     }
 
+    //affiche du texte à l'écran, utilisés comme transitions
     private void prompt(Graphics g, String prompt, String[] subPrompts)
     {
         Font promptFont = new Font("Helvetica", Font.BOLD, 2*DOT_SIZE);
         FontMetrics metr = getFontMetrics(promptFont);
 
+        //si on doit afficher des lignes en plus on ajoute un espace entre celles-ci et le prompt
         int totalSize = promptFont.getSize() + subPrompts.length * hudFont.getSize();
         if (subPrompts.length > 0) totalSize += hudFont.getSize();
 
@@ -376,6 +377,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //Remet le jeu a 0, utilisé avec le promptTimer, d'où l'ActionListener
     private ActionListener restartGame = new ActionListener()
     {
         public void actionPerformed(ActionEvent e)
@@ -393,11 +395,14 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     };
     
+    //Affiche un prompt d'un niveau et le charge depuis LEVELS, initialisant les variables nécéssaires
     private void initGame() 
     {
+        Entity ent;
+
         System.out.println("We loadin' " + level);
 
-        //start the prompt
+        //Affichage du prompt
 
         promptTimer = new Timer(PROMPT_TIME * 1000, startLevel);
         promptTimer.setRepeats(false); 
@@ -406,73 +411,58 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
         repaint();
 
-        //load the level
+        //Chargement du niveau
 
-        goal = new Goal(0, VERT_OFFSET, B_WIDTH, DOT_SIZE, false);
+        goal = new Goal(0, HUD_HEIGHT, B_WIDTH, DOT_SIZE, false);
 
         frogger.setPosX(B_WIDTH / 2);
         frogger.setPosY(W_HEIGHT - DOT_SIZE);
         frogger.setDirection(UP);
         
-        coinCount = LEVELS[level].COINS;
+        coinCount = LEVELS[level].getCoins();
         collectibleList = new ArrayList<Entity>();
         voitureList = new ArrayList<Voiture>();
         troncList = new ArrayList<Tronc>();
-        collision = new int[GRID_WIDTH][GRID_HEIGHT];
+        obstacleList = new ArrayList<Entity>();
 
-        if ( level < LEVELS.length )
+        if ( level < LEVELS.length )//ne devrait jamais arriver mais on vérifie si on dépasse le nombre de niveaux préparé
         {
             for ( int compt = 0; compt < GRID_HEIGHT; compt++ )
             {
-                if ( compt < LEVELS[level].LAYOUT.length() && LEVELS[level].LAYOUT.charAt(compt) != GRASS)
+                if ( compt < LEVELS[level].getLayout().length() && LEVELS[level].getLayout().charAt(compt) != GRASS)
                 {
-                    switch (LEVELS[level].LAYOUT.charAt(compt))
+                    //Attention si ce n'est pas de l'herbe on ne vérifie pas si on est sur le goal ou l'emplacement de frogger
+                    switch (LEVELS[level].getLayout().charAt(compt))
                     {    
                         case ROAD:
-                            for ( int comptVoit = 0; comptVoit < LEVELS[level].CARS_PER_LANE; comptVoit++ )
-                                voitureList.add(LEVELS[level].GetRandomCar(GetRandomXCoordinate(), VERT_OFFSET + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));
+                            for ( int comptVoit = 0; comptVoit < LEVELS[level].getCars(); comptVoit++ )
+                                voitureList.add(GetRandomCar(GetRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));//TODO random speed
                             break;
     
                         case WATER:
-                            int comptY = (int)(Math.random() * 3) * DOT_SIZE;
-                            while ( comptY + 3 * DOT_SIZE <= B_WIDTH )
+                            //on sépare les tronc de leur largeur - DOT_SIZE maximum pour éviter de rendre impossible la traversée d'une rivière
+                            int comptX = (int)(Math.random() * 3) * DOT_SIZE; //TODO littéral
+                            while ( comptX + 3 * DOT_SIZE <= B_WIDTH )
                             {
-                                troncList.add(new Tronc(comptY, VERT_OFFSET + compt * DOT_SIZE, 3 * DOT_SIZE, DOT_SIZE));
-                                comptY += 3 * DOT_SIZE;
-                                comptY += (int)(Math.random() * 3) * DOT_SIZE;
+                                troncList.add(new Tronc(comptX, HUD_HEIGHT + compt * DOT_SIZE, 3 * DOT_SIZE, DOT_SIZE));
+                                comptX += 3 * DOT_SIZE;
+                                comptX += (int)(Math.random() * 3) * DOT_SIZE;
                             }
                             break;
                     }
                 }
                 else
                 {
-                    if ( compt != 0 && compt != GRID_HEIGHT - 1 )
+                    if ( compt != 0 && compt != GRID_HEIGHT - 1 ) //pour éviter de bloquer frogger ou de superposer des buissons sur le goal on éviter les extrémités du board
                     {
-                        for ( int comptBush = 0; comptBush < LEVELS[level].BUSHES; comptBush++ )
+                        for ( int comptBush = 0; comptBush < LEVELS[level].getBushes(); comptBush++ )
                         {
-                            collision[(int)(Math.random()*GRID_WIDTH)][compt] = 1;
+                            obstacleList.add(new Bush(GetRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, DOT_SIZE, DOT_SIZE));
                         }
                     }
                 }
             }
         }
-
-        /*if ( LEVELS[level].LAYOUT.indexOf(ROAD) != -1)
-        {
-            Voiture[] voits = new Voiture[4];
-            voits[0] = new Blinky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25);
-            voits[1] = new Inky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5);
-            voits[2] = new Pinky(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.5);
-            voits[3] = new Clyde(0, 0, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25);
-
-            for ( Voiture voit : voits)
-            {
-                placeOnRoad(voit);
-                voitureList.add(voit);
-            }
-        }*/
-
-        Entity ent;
 
         for ( int compt = 0; compt < coinCount; compt++ )
         {
@@ -481,6 +471,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             collectibleList.add(ent);
         }
 
+        //La fréquence des insecte est déterminé par le nombre de pièces et leur attribut FREQUENCY
         for ( int compt = 0; compt < coinCount / BugCommon.getFrenquency(); compt++ )
         {
             ent = new BugCommon(0, 0, DOT_SIZE);
@@ -502,29 +493,12 @@ public class Board extends JPanel implements ActionListener, Idirectional
             collectibleList.add(ent);
         }
 
-        /*ent = new BugRare(0, 0, DOT_SIZE);
-        placeEntity(ent);
-        collectibleList.add(ent);
-
-        ent = new BugUnique(0, 0, DOT_SIZE);
-        placeEntity(ent);
-        collectibleList.add(ent);*/
-
         ent = new Pill(0, 0, DOT_SIZE);
         placeEntity(ent);
         collectibleList.add(ent);
-
-        for ( int[] col : collision )
-        {
-            for ( int i : col )
-            {
-                System.out.print(i+" ");
-            }
-
-            System.out.println();
-        }
     }
 
+    //Commence la partie à la fin d'une instance de promptTimer
     private ActionListener startLevel = new ActionListener()
     {
         public void actionPerformed(ActionEvent e)
@@ -533,13 +507,14 @@ public class Board extends JPanel implements ActionListener, Idirectional
             System.out.println("We startin' " + level);
             promptTimer.stop();
 
-            setBackground(LEVELS[level].BACKCOLOR);
+            setBackground(LEVELS[level].getBackcolor());
 
             gameTimer.start();
             repaint();
         }
     };
 
+    //termine le niveau après avoir touché le goal (avec assez de pièces)
     public void triggerLevelEnd()
     {
         System.out.println("We stoppin' "+level);
@@ -551,9 +526,11 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
         level++;
 
+        //on va au prochain niveau s'il y en a
         if ( level < LEVELS.length ) initGame();
         else 
         {
+            //sinon on donne le bonus de vie et on recommence tout
             score += lives * LIVES_POINTS;
 
             repaint();
@@ -564,6 +541,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //termine le niveau après être mouru
     public void loseLife()
     {
         inGame = false;
@@ -571,6 +549,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
         frogger.resetInvincible();
 
+        //si on a assez de vie on recommence le niveau, sinon on reset le jeu
         if ( lives > 0 ) 
         {
             lives--;
@@ -591,20 +570,23 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //listener du gameTimer, bouge les voiture
     @Override
-    public void actionPerformed(ActionEvent e) {
-
+    public void actionPerformed(ActionEvent e) 
+    {
         if (inGame) 
         {
-            checkCollectibles();
+            checkCollectibles();//TODO pas nécéssaire ?????
             moveVoiture();
         }
 
         repaint();
     }
 
-    private void checkCollectibles() {
-
+    //vérifie si frogger est en collision avec une entité et exécute le traitement adéquoi
+    //active aussi le goal si on a fait les actions nécéssaires
+    private void checkCollectibles() 
+    {
         for (Entity coll : collectibleList)
         {
             if (frogger.Collides(coll)) {
@@ -632,6 +614,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //Fait avancer toutes les voitures et les ramènes de l'autre coté de l'écran si nécéssaire
     private void moveVoiture()
     {
         for ( Voiture voit : voitureList )
@@ -651,12 +634,14 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //Met une entité dans le void où elle est sensée ne plus être utilisée
     public void SendToVoid(Entity victim)
     {
-        victim.setPosX(voidX);
-        victim.setPosY(voidY);
+        victim.setPosX(VOID_X);
+        victim.setPosY(VOID_Y);
     }
 
+    //tests de terrains utilisés par les classes implémentant iTriggerable
     public boolean isRoad(int posY)
     {
         return terrainTest(posY, ROAD);
@@ -667,43 +652,52 @@ public class Board extends JPanel implements ActionListener, Idirectional
         return terrainTest(posY, WATER);
     }
 
+    //teste si une coordonnée "posY" se trouve dans une zone au matériel "material"
     private boolean terrainTest(int posY, char material)
     {
-        int gridY = ((posY - VERT_OFFSET) / DOT_SIZE);
-        return gridY >= 0 && gridY < LEVELS[level].LAYOUT.length() && LEVELS[level].LAYOUT.charAt(gridY) == material;
+        int gridY = ((posY - HUD_HEIGHT) / DOT_SIZE);
+        return gridY >= 0 && gridY < LEVELS[level].getLayout().length() && LEVELS[level].getLayout().charAt(gridY) == material;
     }
 
+    //aligne une entité a un multiple de DOT_SIZE sur la hauteur
     public void alignY(Entity ent)
     {
         ent.setPosY(ent.getPosY() - ent.getPosY() % DOT_SIZE);
     }
 
+    //aligne une entité a un multiple de DOT_SIZE sur la largeur
     public void alignX(Entity ent)
     {
         ent.setPosX(ent.getPosX() - ent.getPosX() % DOT_SIZE);
     }
 
+    //retourne frogger
+    //TODO indiquer other sur iTriggerable
     public Frog getFrogger()
     {
         return frogger;
     }
 
+    //incrémente le score d'un certain nombre, et le double si on est invincible
     public void incScore(int amount)
     {
         if ( frogger.isInvincible() ) amount *= 2;
         score += amount;
     }
 
+    //décrémente le nombre de pièces
     public void decCoinCount()
     {
         coinCount--;
     }
 
+    //retourne le quotient de nombre de pièces collectées sur le nombre total
     public double getCompletion()
     {
-        return (LEVELS[level].COINS - coinCount) * 1.0 / LEVELS[level].COINS;
+        return (LEVELS[level].getCoins() - coinCount) * 1.0 / LEVELS[level].getCoins();
     }
 
+    //test si une entité ent se trouve sur un tronc
     public boolean onTronc(Entity ent)
     {
         for ( Tronc tron : troncList )
@@ -714,65 +708,117 @@ public class Board extends JPanel implements ActionListener, Idirectional
         return false;
     }
 
-    public boolean isWall(int posX, int posY)
+    //test si une entité ent se trouve dans un obstacle
+    public boolean onObstacle(Entity ent)
     {
-        posX /= DOT_SIZE;
-        posY = (posY - VERT_OFFSET) / DOT_SIZE;
-
-        if ( posX < 0 || posX >= GRID_WIDTH || posY < 0 || posY >= GRID_HEIGHT ) return true;
-
-        if ( collision[posX][posY] != 0 ) return true;
+        for ( Entity obs : obstacleList )
+        {
+            if ( ent.Collides(obs) ) return true;
+        }
 
         return false;
     }
 
-    private void move() {
-
-        //si frogger n'est pas aligné alors qu'il a une vitesse normale, on tente de le réaligner en donnant une vitesse moindre
-        if ( ( (frogger.getPosY() % DOT_SIZE != 0) || (frogger.getPosX() % DOT_SIZE != 0 ) )
-        && !frogger.isInvincible() )
+    //place une entité ent sur un endroit viable
+    private void placeEntity(Entity ent)
+    {
+        do
         {
-            switch ( frogger.getDirection() )
+            ent.setPosX(GetRandomXCoordinate());
+            ent.setPosY(GetRandomYCoordinate());
+        } 
+        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.Collides(goal) || onObstacle(ent) );
+    }
+
+    //retourne une coordonée aléatoire sur la largeur
+    private int GetRandomXCoordinate() 
+    {
+        int r = (int) (Math.random() * (GRID_WIDTH - 1));
+        return (r * DOT_SIZE);
+    }
+
+    //retourne une coordonée aléatoire sur la hauteur, en prenant compte du HUD
+    private int GetRandomYCoordinate() 
+    {
+        int r = (int) (Math.random() * (GRID_HEIGHT - 1)) * DOT_SIZE;
+        return HUD_HEIGHT + r;
+    }
+    
+    //retourne une voiture de type aléatoire en fonction des chances indiquées par le niveau, prends les paramêtres pour le constructeur de la voiture
+    public Voiture GetRandomCar(int posX, int posY, int width, int height, int direction, double speed)
+    {
+        int sum = 0, rand = -1, type = -1;
+        boolean chosen = false;
+        Voiture voit = null;
+
+        for ( int i : LEVELS[level].getOdds() )
+        {
+            sum += i;
+        }
+
+        rand = (int)(Math.random()*sum);
+
+        for ( int compt = 0; compt < LEVELS[level].getOdds().length; compt++ )
+        {
+            rand -= LEVELS[level].getOdds()[compt];
+            if ( rand < 0 && !chosen ) 
             {
-                case LEFT:
-                    if ( frogger.getPosX() % (DOT_SIZE * frogger.getSpeed()) != 0 )
-                    {
-                        alignX(frogger);
-                    }
-                    break;
-
-                case RIGHT:
-                    if ( frogger.getPosX() % (DOT_SIZE * frogger.getSpeed()) != 0 )
-                    {
-                        frogger.setPosX(frogger.getPosX() + DOT_SIZE);
-                        alignX(frogger);
-                    }
-                    break;
-
-                case UP:
-                    if ( frogger.getPosY() % (DOT_SIZE * frogger.getSpeed()) != 0 )
-                    {
-                        alignY(frogger);
-                    }
-                    break;
-
-                case DOWN:
-                    if ( frogger.getPosY() % (DOT_SIZE * frogger.getSpeed()) != 0 )
-                    {
-                        frogger.setPosY(frogger.getPosY() + DOT_SIZE);
-                        alignY(frogger);
-                    }
-                    break;
+                type = compt;
+                chosen = true;
             }
+        }
+
+        switch ( type )
+        {
+            default:
+                //par sécurité si il y a erreur quelque part notamment s'il y a plus de types indiqués dans les chances du niveau qu'ici
+                //sinon ce n'est que le cas 0
+                voit = new Voiture(posX, posY, width, height, direction, speed);
+                break;
+
+            case 1:
+                voit = new Blinky(posX, posY, width, height, direction, speed);
+                break;
+
+            case 2:
+                voit = new Pinky(posX, posY, width, height, direction, speed);
+                break;
+
+            case 3:
+                voit = new Inky(posX, posY, width, height, direction, speed);
+                break;
+
+            case 4:
+                voit = new Clyde(posX, posY, width, height, direction, speed);
+                break;
+        }
+
+        return voit;
+    }
+
+    //gère les mouvement et les collision de frogger avec le niveau
+    private void move() 
+    {
+        //si frogger n'est pas aligné alors qu'il a une vitesse normale, on tente de le réaligner au lieu de le faire avancer
+        if ( !frogger.isInvincible() && ( (frogger.getDirection() == UP || frogger.getDirection() == DOWN ) && frogger.getPosY() % DOT_SIZE != 0) )
+        {
+            if ( frogger.getDirection() == DOWN ) frogger.setPosY(frogger.getPosY() + DOT_SIZE);
+            alignY(frogger);
+        }
+        else if ( !frogger.isInvincible() && ( (frogger.getDirection() == LEFT || frogger.getDirection() == RIGHT) && frogger.getPosX() % DOT_SIZE != 0) )
+        {
+            if ( frogger.getDirection() == RIGHT ) frogger.setPosX(frogger.getPosX() + DOT_SIZE);
+            alignX(frogger);
         }
         else frogger.Move(DOT_SIZE, this);
 
+        //collision avec les bords de l'écran
         if (frogger.getPosY() + frogger.getHeight() >= W_HEIGHT) {
             frogger.setPosY(W_HEIGHT - DOT_SIZE);
         }
 
-        if (frogger.getPosY() < VERT_OFFSET) {
-            frogger.setPosY(VERT_OFFSET);
+        if (frogger.getPosY() < HUD_HEIGHT) {
+            frogger.setPosY(HUD_HEIGHT);
         }
 
         if (frogger.getPosX() + frogger.getWidth() >= B_WIDTH) {
@@ -783,44 +829,40 @@ public class Board extends JPanel implements ActionListener, Idirectional
             frogger.setPosX(0);
         }
 
+        //collision avec les buissons (et autres obstacles)
+        for ( Entity obs : obstacleList )
+        {
+            if ( frogger.Collides(obs) ) 
+            {
+                switch ( frogger.getDirection() )
+                {
+                    case LEFT:
+                        frogger.setPosX(obs.getPosX() + obs.getWidth());
+                        break;
+
+                    case RIGHT:
+                        frogger.setPosX(obs.getPosX() - frogger.getWidth());
+                        break;
+
+                    case UP:
+                        frogger.setPosY(obs.getPosY() + obs.getHeight());
+                        break;
+
+                    case DOWN:
+                        frogger.setPosY(obs.getPosY() - frogger.getHeight());
+                        break;
+                }
+            }
+        }
+
+        //collision avec l'eau
+        //le -1 est un clearfix pour éviter de prendre en compte une case en trop
         if ( isWater(frogger.getPosY()) && isWater(frogger.getPosY() + frogger.getHeight() - 1) && !onTronc(frogger) ) loseLife();
     }
 
-    private int GetRandomXCoordinate() {
-
-        int r = (int) (Math.random() * (GRID_WIDTH - 1));
-        return (r * DOT_SIZE);
-    }
-
-    private int GetRandomYCoordinate() {
-
-        int r = (int) (Math.random() * (GRID_HEIGHT - 1)) * DOT_SIZE;
-        return VERT_OFFSET + r;
-    }
-
-    private void placeEntity(Entity ent)
+    //Gère les évenement de touche de clavier
+    private class TAdapter extends KeyAdapter 
     {
-        do
-        {
-            ent.setPosX(GetRandomXCoordinate());
-            ent.setPosY(GetRandomYCoordinate());
-        } 
-        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.Collides(goal) );
-    }
-
-    /*private void placeOnRoad(Entity ent)
-    {
-        ent.setPosX(GetRandomXCoordinate());
-
-        do
-        {
-            ent.setPosY(GetRandomYCoordinate());
-        } 
-        while ( !isRoad(ent.getPosY()) );
-    }*/
-
-    private class TAdapter extends KeyAdapter {
-
         @Override
         public void keyPressed(KeyEvent e) {
 

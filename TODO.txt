@@ -1,0 +1,15 @@
+- Incorporer entité Bush V
+- diff images de bushs V
+- bouger la coll des bush du frog au board V
+- bouger getRandomCar au board V
+- se poser des questions sur l'alignement ~
+- Encapsulation sur Level.java V
+- les commantaires !!!!!!!!!!
+- Nettoyez le code
+- Tester sur Linux
+
+--BASE FINIE--
+
+- "TODO skip ligne de goal et start" a considerer pas obligatoire
+- Time bonus
+- Mieux afficher les bonus attribués
