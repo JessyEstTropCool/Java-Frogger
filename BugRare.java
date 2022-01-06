@@ -1,3 +1,4 @@
+//type d'insecte rare donnant un nombre modéré de points
 public class BugRare extends Bug 
 {
     private static final int POINTS_AWARDED = 3;
@@ -8,10 +9,7 @@ public class BugRare extends Bug
         super(posX, posY, size, POINTS_AWARDED);
     }
 
-    public static int getFrenquency()
-    {
-        return FREQUENCY;
-    }
+    public static int getFrenquency() { return FREQUENCY; }
     
     @Override
     public String getType() { return "BugRare"; }

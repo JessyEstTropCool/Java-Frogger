@@ -1,3 +1,4 @@
+//classe de base des insectes donnant des points déterminé à la contruction
 public abstract class Bug extends Entity implements Itriggerable
 {
     private int points;

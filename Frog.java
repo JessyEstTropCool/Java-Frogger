@@ -4,6 +4,7 @@ import java.awt.event.ActionListener;
 
 public class Frog extends MovingEntity implements ActionListener
 {
+    //invincTimer sert a afficher l'invincibilité dans le HUD en plus de la gerer ici
     private int invincSeconds;
     private double speedFactor;
     private Timer invincTimer = new Timer(1000, this);
@@ -36,16 +37,20 @@ public class Frog extends MovingEntity implements ActionListener
         }
     }
     
+    //déduit de invincSeconds toutes les secondes jusqu'à ce qu'on arrive à 0
+    //après quoi on arrête l'invincibilité
     public void actionPerformed(ActionEvent e)
     {
         invincSeconds--;
         
+        //ne devrait pas aller en dessous de 0, la comparaison est plus générale par sécurité
         if ( invincSeconds <= 0 )
         {
             resetInvincible();
         }
     }
 
+    //commence l'invincibilité pendant le temps en secondes time et en alterant la vitesse par le speedFactor
     public void triggerInvincible(int time, double speedFactor)
     {
         invincSeconds = time;
@@ -56,6 +61,7 @@ public class Frog extends MovingEntity implements ActionListener
         setSpeed(getSpeed() * speedFactor);
     }
 
+    //termine l'invincibilité si elle est encore en route et remet la vitesse à sa place
     public void resetInvincible()
     {
         if ( invincTimer.isRunning() )
@@ -74,6 +80,7 @@ public class Frog extends MovingEntity implements ActionListener
         return invincSeconds > 0;
     }
 
+    //ajoute un listener a invincTimer
     public void addListener(ActionListener listener)
     {
         invincTimer.addActionListener(listener);

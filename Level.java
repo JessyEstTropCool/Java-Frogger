@@ -1,5 +1,7 @@
 import java.awt.Color;
 
+//Contient les informations d'un niveau, immutable (normalement)
+
 public class Level 
 {
     private final Color BACKCOLOR;

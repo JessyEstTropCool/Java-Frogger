@@ -1,3 +1,4 @@
+//type d'insecte unique donc très rare donnant un beaucoup de points
 public class BugUnique extends Bug 
 {
     private static final int POINTS_AWARDED = 5;
@@ -8,10 +9,7 @@ public class BugUnique extends Bug
         super(posX, posY, size, POINTS_AWARDED);
     }
 
-    public static int getFrenquency()
-    {
-        return FREQUENCY;
-    }
+    public static int getFrenquency() { return FREQUENCY; }
     
     @Override
     public String getType() { return "BugUnique"; }

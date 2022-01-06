@@ -1,3 +1,4 @@
+//Voiture mauve, change de vitesse en fonction du nombre de pièces collectées
 public class Pinky extends Voiture
 {
     private static final double MIN_SPEED = 0.25;

@@ -1,3 +1,4 @@
+//sert au changement de niveau si on a collecté toute les pièces
 public class Goal extends Entity implements Itriggerable
 {
     private boolean ready;
@@ -14,7 +15,7 @@ public class Goal extends Entity implements Itriggerable
     @Override
     public String getType() 
     {
-        if ( ready ) return "Goal"; 
+        if ( ready ) return "Goal"; //TODO changer en true false
         else return "GoalDown";
     }
 

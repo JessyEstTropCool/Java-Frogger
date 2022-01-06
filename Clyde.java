@@ -1,5 +1,7 @@
+//Voiture orange, changeant de vitesse ou de sens de mainère aléatoire
 public class Clyde extends Voiture
 {
+    //le changement de direction devrait être plus rare pour éviter trop de surprise
     private static final double SPEED_CHANGE_CHANCE = 0.05;
     private static final double DIRECTION_CHANGE_CHANCE = 0.001;
 
@@ -11,9 +13,10 @@ public class Clyde extends Voiture
     @Override
     public void Move(int distance, Board board)
     {
+        //ne change de direction/vitesse seulement si elle est encore en jeu
         if ( Math.random() < SPEED_CHANGE_CHANCE && getDirection() != STOP ) 
         {
-            setSpeed( Math.random()/2 + 0.25 );
+            setSpeed( Math.random()/2 + 0.25 );//TODO random speed
         }
         
         if ( Math.random() < DIRECTION_CHANGE_CHANCE && getDirection() != STOP ) 

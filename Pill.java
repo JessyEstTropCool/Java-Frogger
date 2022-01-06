@@ -1,3 +1,4 @@
+//pillule, power up d'invincibilité pour frogger
 public class Pill extends Entity implements Itriggerable
 {
     private static final int INVINCIBLE_TIME = 10;
@@ -5,6 +6,7 @@ public class Pill extends Entity implements Itriggerable
     private static final int PIERRE_CHANCE = 20;
     private boolean pierre;
 
+    //a une chance de changer d'image et de devenir le célèbre pierre
     public Pill(int posX, int posY, int size)
     {
         super(posX, posY, size);

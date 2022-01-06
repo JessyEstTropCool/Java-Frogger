@@ -1,3 +1,4 @@
+//voiture bleue, change de vitesse si frogger est sur la même voie qu'elle
 public class Inky extends Voiture 
 {
     private final static double SAME_LANE_FACTOR = 0.5;

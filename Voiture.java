@@ -1,3 +1,4 @@
+//voiture de base, mais peu aussi être mise en jeu
 public class Voiture extends MovingEntity implements Itriggerable
 {
     public Voiture(int posX, int posY, int width, int height, int direction, double speed)

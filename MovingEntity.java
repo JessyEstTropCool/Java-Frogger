@@ -1,3 +1,4 @@
+//classe de base d'une entité pouvant bouger
 public abstract class MovingEntity extends Entity implements Idirectional
 {
     private int direction;

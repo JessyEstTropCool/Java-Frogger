@@ -1,3 +1,4 @@
+//classe de base pour les entités
 public abstract class Entity 
 {
     private int posX;
@@ -21,11 +22,13 @@ public abstract class Entity
         this.height = size;
     }
 
+    //vérifie une collision avec un point (X; Y)
     public boolean Collides(int X, int Y)
     {
         return X >= posX && X < posX + width && Y >= posY && Y < posY + height;
     }
 
+    //vérifie une collision avec une autre entité ent
     public boolean Collides(Entity ent)
     {
         return posX < ent.posX + ent.width 
