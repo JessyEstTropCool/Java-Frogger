@@ -7,6 +7,8 @@ public class Level
     private final Color BACKCOLOR;
     private final String LAYOUT;
     private final String NAME;
+    //Probabilité d'apparitions de certaines voitures, ordonnées dans Board.getRandomCar, déterminée par rapport au total
+    //Pour l'instant l'ordre est Voiture - Blinky - Pinky - Inky - Clyde
     private final int[] ODDS;
     private final int COINS;
     private final int CARS;

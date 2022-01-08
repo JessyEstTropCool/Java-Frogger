@@ -12,7 +12,6 @@ import java.awt.event.KeyEvent;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import javax.swing.plaf.ColorUIResource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,15 +49,24 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int VOID_X = -1*B_WIDTH;
     private final int VOID_Y = -1*B_HEIGHT;
 
-    private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
+    private final Color BACKCOLOR = Color.decode("#208010");
     private final Color FORECOLOR = Color.WHITE;
     private final Color WATER_EDGE_COLOR = Color.decode("#7C4D26");
 
     private final Level[] LEVELS = new Level[]{
-        new Level("Autoroute de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 4, 0, 2, 2, 2 }, 3, 1, 1, 0.1, 0.25, BACKCOLOR),
-        new Level("Circuit de F1", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 1, 16, 1, 1, 1 }, 2, 2, 1, 0.5, 0.25, new ColorUIResource(32, 128, 128)),
-        new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 6, 1, 1, 1, 1 }, 4, 2, 2, 0.25, 0.25, BACKCOLOR),
-        new Level("Centre-ville", "GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 4, 1, 2, 2, 1 }, 5, 2, 3, 0.25, 0.5, new ColorUIResource(128, 128, 128))
+        new Level("Route de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 40, 0, 20, 20, 20 }, 3, 1, 1, 0.1, 0.25, BACKCOLOR),
+        new Level("Au milieu d'un champ de blé", "GGGRRRGGWWGGRRRRGGGRRR", new int[]{ 60, 10, 10, 10, 10 }, 4, 1, 2, 0.25, 0.25, Color.decode("#E5CA54")),
+        new Level("Attention, sortie d'école", "GGGRRRRGGGGRRRRGGGGRRRR", new int[]{ 10, 0, 0, 90, 0 }, 5, 2, 3, 0.25, 0.25, BACKCOLOR),
+        new Level("Salon de l'automobile particulière", "GGGRRRGGGRRRGGGRRRGGGRRRGGGRR", new int[]{ 0, 25, 25, 25, 25 }, 5, 1, 2, 0.25, 0.25, Color.decode("#808080")),
+        new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 60, 10, 10, 10, 10 }, 4, 2, 2, 0.25, 0.25, Color.decode("#208000")),
+        new Level("Embouteillage sur l'autoroute", "GGGRRRRRRRRGGGRRRRRRRR", new int[]{ 20, 20, 20, 20, 20 }, 10, 3, 3, 0.1, 0.2, BACKCOLOR),
+        new Level("Avenue Argent Argenté d'Argentine", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 0, 0, 100, 0, 0 }, 9, 2, 1, 0.25, 0.5, Color.decode("#3D0072")),
+        new Level("Petite pause à la plage", "WWWWWWWWGGGGGGGRRRRGRRRR", new int[]{ 30, 10, 10, 40, 10 }, 6, 2, 5, 0.5, 0.25, Color.decode("#C7C771")),
+        new Level("Circuit de F1", "GGGRRRRGGRRRRGGRRRRGGRRRR", new int[]{ 0, 100, 0, 0, 0 }, 2, 2, 1, 0.5, 0.25, Color.decode("#7F2020")),
+        new Level("Centre-ville", "GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 40, 10, 20, 20, 10 }, 5, 2, 3, 0.25, 0.5, Color.decode("#808080")),
+        new Level("Rue random", "GGGRRRRGGRRRRGGRRRRGGRRRR", new int[]{ 0, 0, 0, 0, 100 }, 2, 2, 1, 0.1, 0.9, Color.decode("#FF6A20")),
+        new Level("Congestion urbaine", "GGGRRRRRGGRRRRRGGRRRRR", new int[]{ 20, 20, 20, 20, 20 }, 6, 3, 3, 0.25, 0.5, Color.decode("#808080")),
+        new Level("Bonus, go go go !", "GGGWWWWWGGGRRGGGWWWWWGGG", new int[]{ 20, 20, 20, 20, 20 }, 30, 3, 5, 0.5, 0.5, Color.decode("#80FF80"))
     };
 
     private final String[] IMAGE_FILENAMES = { 
@@ -249,7 +257,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
                                 g.setColor(Color.CYAN);
                                 g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, DOT_SIZE);
 
-                                if ( compt == 0 || LEVELS[level].getLayout().charAt(compt-1) != WATER ) //si on commence une rivière, on marque le bord
+                                if ( compt != 0 && LEVELS[level].getLayout().charAt(compt-1) != WATER ) //si on commence une rivière, on marque le bord
                                 {
                                     g.setColor(WATER_EDGE_COLOR);
                                     g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, WATER_EDGE_HEIGHT);
@@ -736,7 +744,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     //retourne une coordonée aléatoire sur la largeur
     private int getRandomXCoordinate() 
     {
-        int r = (int) (Math.random() * (GRID_WIDTH - 1));
+        int r = (int) (Math.random() * (GRID_WIDTH));
         return (r * DOT_SIZE);
     }
 
