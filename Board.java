@@ -56,8 +56,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final Level[] LEVELS = new Level[]{
         new Level("Route de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 40, 0, 20, 20, 20 }, 3, 1, 1, 0.1, 0.25, BACKCOLOR),
         new Level("Au milieu d'un champ de blé", "GGGRRRGGWWGGRRRRGGGRRR", new int[]{ 60, 10, 10, 10, 10 }, 4, 1, 2, 0.25, 0.25, Color.decode("#E5CA54")),
-        new Level("Attention, sortie d'école", "GGGRRRRGGGGRRRRGGGGRRRR", new int[]{ 10, 0, 0, 90, 0 }, 5, 2, 3, 0.25, 0.25, BACKCOLOR),
-        new Level("Salon de l'automobile particulière", "GGGRRRGGGRRRGGGRRRGGGRRRGGGRR", new int[]{ 0, 25, 25, 25, 25 }, 5, 1, 2, 0.25, 0.25, Color.decode("#808080")),
+        new Level("Attention, sortie d'école", "GGGRRRRGGGGRRRRGGGGRRRR", new int[]{ 10, 0, 0, 90, 0 }, 5, 2, 3, 0.25, 0.25, Color.decode("#208080")),
+        new Level("Salon de l'automobile particulière", "GGGRRRGGRRRGGRRRGGRRRGGRRR", new int[]{ 0, 25, 25, 25, 25 }, 5, 1, 2, 0.25, 0.25, Color.decode("#808080")),
         new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 60, 10, 10, 10, 10 }, 4, 2, 2, 0.25, 0.25, Color.decode("#208000")),
         new Level("Embouteillage sur l'autoroute", "GGGRRRRRRRRGGGRRRRRRRR", new int[]{ 20, 20, 20, 20, 20 }, 10, 3, 3, 0.1, 0.2, BACKCOLOR),
         new Level("Avenue Argent Argenté d'Argentine", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 0, 0, 100, 0, 0 }, 9, 2, 1, 0.25, 0.5, Color.decode("#3D0072")),
