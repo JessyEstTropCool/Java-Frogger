@@ -15,12 +15,11 @@ public class Goal extends Entity implements Itriggerable
     @Override
     public String getType() 
     {
-        if ( ready ) return "Goal"; //TODO changer en true false
-        else return "GoalDown";
+        return "Goal" + ready;
     }
 
     @Override
-    public void triggerAction(Board board)
+    public void triggerAction(Board board, Entity other)
     {
         board.triggerLevelEnd();
     }

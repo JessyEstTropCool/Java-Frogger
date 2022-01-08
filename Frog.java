@@ -15,7 +15,7 @@ public class Frog extends MovingEntity implements ActionListener
     }
 
     @Override
-    public void Move(int distance, Board board)
+    public void move(int distance, Board board)
     {
         switch (getDirection())
         {

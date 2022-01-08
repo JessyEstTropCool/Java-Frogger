@@ -1,5 +1,5 @@
-#!/bin/bash 
+#!/bin/bash
 
-javac Frogger.java
+javac *.java
 java Frogger
 find . -type f -name "*.class" -delete

@@ -7,7 +7,7 @@ public class Voiture extends MovingEntity implements Itriggerable
     }
 
     @Override
-    public void Move(int distance, Board board)
+    public void move(int distance, Board board)
     {
         switch (getDirection())
         {
@@ -25,11 +25,11 @@ public class Voiture extends MovingEntity implements Itriggerable
     public String getType() { return "Voiture" + getDirection(); }
 
     @Override
-    public void triggerAction(Board board)
+    public void triggerAction(Board board, Entity other)
     {
-        if ( board.getFrogger().isInvincible() )
+        if ( ((Frog)other).isInvincible() )
         {
-            board.SendToVoid(this);
+            board.sendToVoid(this);
             setDirection(STOP);
 
             board.incScore(1);

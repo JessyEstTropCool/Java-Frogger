@@ -19,42 +19,46 @@ import java.util.HashMap;
 
 public class Board extends JPanel implements ActionListener, Idirectional 
 {
+    private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
+
     private final String MEDIA_PATH = "20x20/";
     private final int DOT_SIZE = 20;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
-    private final int HUD_HEIGHT = 20;
     private final int PROMPT_TIME = 2;
     private final int START_LIVES = 3;
     private final int LIVES_POINTS = 50;
+    private final int DELAY = 100;
 
     private final int GOAL_BAND_HEIGHT = 3;
     private final int GOAL_BAND_POS = 8;
     private final int GOAL_BAND_DOWN_HEIGHT = 2;
     private final int GOAL_BAND_DOWN_POS = 2;
 
+    private final int TRONC_GRID_WIDTH = 3;
+
     private final int WATER_EDGE_HEIGHT = 5;
     private final int FOAM_LINE_HEIGHT = 2;
+    private final int ROAD_SEPARATOR_OFFSET = DOT_SIZE / (2 - GRID_WIDTH % 2);
+    private final int ROAD_SEPARATOR_HEIGHT = 2;
+    private final double VERT_CENTER_TEXT = 0.75;
 
-    private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
-
+    private final int HUD_HEIGHT = 2*DOT_SIZE;
     private final int B_WIDTH = GRID_WIDTH * DOT_SIZE;
     private final int B_HEIGHT = GRID_HEIGHT * DOT_SIZE;
     private final int W_HEIGHT = B_HEIGHT + HUD_HEIGHT;
-    private final int DELAY = 100;
-    private final int ROAD_SEPARATOR_OFFSET = DOT_SIZE / (2 - GRID_WIDTH % 2);
-    private final double VERT_CENTER_TEXT = 0.75;
     private final int VOID_X = -1*B_WIDTH;
     private final int VOID_Y = -1*B_HEIGHT;
 
     private final Color BACKCOLOR = new ColorUIResource(32, 128, 16);
     private final Color FORECOLOR = Color.WHITE;
+    private final Color WATER_EDGE_COLOR = Color.decode("#7C4D26");
 
     private final Level[] LEVELS = new Level[]{
-        new Level("Autoroute de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 4, 0, 2, 2, 2 }, 3, 1, 1, BACKCOLOR),
-        new Level("Circuit de F1", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 1, 16, 1, 1, 1 }, 2, 2, 1, new ColorUIResource(32, 128, 128)),
-        new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 6, 1, 1, 1, 1 }, 4, 2, 2, BACKCOLOR),
-        new Level("Centre-ville", "GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 4, 1, 2, 2, 1 }, 5, 2, 3, new ColorUIResource(128, 128, 128))
+        new Level("Autoroute de campagne", "GGGWWWWWWWWGGRRRRGGWWWWWWW", new int[]{ 4, 0, 2, 2, 2 }, 3, 1, 1, 0.1, 0.25, BACKCOLOR),
+        new Level("Circuit de F1", "GGGRRRRGGGRRRGGGRRRGGGRRRR", new int[]{ 1, 16, 1, 1, 1 }, 2, 2, 1, 0.5, 0.25, new ColorUIResource(32, 128, 128)),
+        new Level("Autour de l'étang", "GGGRRRRRGRWWWWWRGRRRGGGRR", new int[]{ 6, 1, 1, 1, 1 }, 4, 2, 2, 0.25, 0.25, BACKCOLOR),
+        new Level("Centre-ville", "GGGRRRRRRGGGGRRRRRRGGGGRRR", new int[]{ 4, 1, 2, 2, 1 }, 5, 2, 3, 0.25, 0.5, new ColorUIResource(128, 128, 128))
     };
 
     private final String[] IMAGE_FILENAMES = { 
@@ -108,8 +112,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "BugUnique", 
         "Pill"+false,
         "Pill"+true,
-        "Goal", 
-        "GoalDown",
+        "Goal"+true, 
+        "Goal"+false,
         "Coeur",
         "CoeurVide",
         "Tronc",
@@ -223,21 +227,21 @@ public class Board extends JPanel implements ActionListener, Idirectional
                                 g.setColor(Color.YELLOW);
 
                                 if ( compt == 0 || LEVELS[level].getLayout().charAt(compt-1) != ROAD ) //ligne jaune au dessus si on commence la route
-                                    g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE - 1, B_WIDTH, 2);
+                                    g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE - ROAD_SEPARATOR_HEIGHT / 2, B_WIDTH, ROAD_SEPARATOR_HEIGHT);
                                 else                                                                    //sinon on fait un séparateur fait de plusieurs lignes blanches
                                 {
                                     g.setColor(Color.WHITE);
 
                                     for ( int compt2 = 0; compt2 < GRID_WIDTH / 2; compt2++)
                                     {
-                                        g.fillRect(ROAD_SEPARATOR_OFFSET + compt2 * DOT_SIZE * 2, HUD_HEIGHT + compt * DOT_SIZE - 1, DOT_SIZE, 2); //TODO hauteur de séparateur ?
+                                        g.fillRect(ROAD_SEPARATOR_OFFSET + compt2 * DOT_SIZE * 2, HUD_HEIGHT + compt * DOT_SIZE - ROAD_SEPARATOR_HEIGHT / 2, DOT_SIZE, ROAD_SEPARATOR_HEIGHT);
                                     }
                                 }
 
                                 if ( compt == LEVELS[level].getLayout().length() - 1 || LEVELS[level].getLayout().charAt(compt+1) != ROAD) //ligne jaune en dessous, si on fini la route
                                 {
                                     g.setColor(Color.YELLOW);
-                                    g.fillRect(0, HUD_HEIGHT + (compt+1) * DOT_SIZE - 1, B_WIDTH, 2);
+                                    g.fillRect(0, HUD_HEIGHT + (compt+1) * DOT_SIZE - ROAD_SEPARATOR_HEIGHT / 2, B_WIDTH, ROAD_SEPARATOR_HEIGHT);
                                 }
                                 break;
 
@@ -247,7 +251,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
                                 if ( compt == 0 || LEVELS[level].getLayout().charAt(compt-1) != WATER ) //si on commence une rivière, on marque le bord
                                 {
-                                    g.setColor(Color.decode("#7C4D26")); //TODO littéral !!!!!!!
+                                    g.setColor(WATER_EDGE_COLOR);
                                     g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE, B_WIDTH, WATER_EDGE_HEIGHT);
                                     g.setColor(Color.WHITE);
                                     g.fillRect(0, HUD_HEIGHT + compt * DOT_SIZE + WATER_EDGE_HEIGHT, B_WIDTH, FOAM_LINE_HEIGHT);
@@ -266,7 +270,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             for ( Tronc tron : troncList )
             {
-                if (tron.Collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getPosX(), tron.getPosY(), this); //TODO distinction true false ?
+                if (tron.collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getPosX(), tron.getPosY(), this);
                 else g.drawImage(spritesMap.get(tron.getType()), tron.getPosX(), tron.getPosY(), this);
             }
 
@@ -436,17 +440,17 @@ public class Board extends JPanel implements ActionListener, Idirectional
                     {    
                         case ROAD:
                             for ( int comptVoit = 0; comptVoit < LEVELS[level].getCars(); comptVoit++ )
-                                voitureList.add(GetRandomCar(GetRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, (int)(Math.random()*2) > 0 ? RIGHT : LEFT, Math.random()/2 + 0.25));//TODO random speed
+                                voitureList.add(getRandomCar(getRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, 2 * DOT_SIZE, DOT_SIZE, getRandomCarDirection(), getRandomSpeed()));
                             break;
     
                         case WATER:
                             //on sépare les tronc de leur largeur - DOT_SIZE maximum pour éviter de rendre impossible la traversée d'une rivière
-                            int comptX = (int)(Math.random() * 3) * DOT_SIZE; //TODO littéral
-                            while ( comptX + 3 * DOT_SIZE <= B_WIDTH )
+                            int comptX = (int)(Math.random() * TRONC_GRID_WIDTH) * DOT_SIZE;
+                            while ( comptX + TRONC_GRID_WIDTH * DOT_SIZE <= B_WIDTH )
                             {
-                                troncList.add(new Tronc(comptX, HUD_HEIGHT + compt * DOT_SIZE, 3 * DOT_SIZE, DOT_SIZE));
-                                comptX += 3 * DOT_SIZE;
-                                comptX += (int)(Math.random() * 3) * DOT_SIZE;
+                                troncList.add(new Tronc(comptX, HUD_HEIGHT + compt * DOT_SIZE, TRONC_GRID_WIDTH * DOT_SIZE, DOT_SIZE));
+                                comptX += TRONC_GRID_WIDTH * DOT_SIZE;
+                                comptX += (int)(Math.random() * TRONC_GRID_WIDTH) * DOT_SIZE;
                             }
                             break;
                     }
@@ -457,7 +461,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
                     {
                         for ( int comptBush = 0; comptBush < LEVELS[level].getBushes(); comptBush++ )
                         {
-                            obstacleList.add(new Bush(GetRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, DOT_SIZE, DOT_SIZE));
+                            obstacleList.add(new Bush(getRandomXCoordinate(), HUD_HEIGHT + compt * DOT_SIZE, DOT_SIZE, DOT_SIZE));
                         }
                     }
                 }
@@ -576,7 +580,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         if (inGame) 
         {
-            checkCollectibles();//TODO pas nécéssaire ?????
+            checkCollectibles();
             moveVoiture();
         }
 
@@ -589,27 +593,27 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         for (Entity coll : collectibleList)
         {
-            if (frogger.Collides(coll)) {
+            if (frogger.collides(coll)) {
     
-                SendToVoid(coll);
+                sendToVoid(coll);
 
-                ((Itriggerable)coll).triggerAction(this);
+                ((Itriggerable)coll).triggerAction(this, frogger);
             }
         }
 
         if ( coinCount <= 0 && !goal.getReady() ) goal.setReady(true);
             
-        if ( frogger.Collides(goal) && goal.getReady() )
+        if ( frogger.collides(goal) && goal.getReady() )
         {
-            SendToVoid(goal);
-            goal.triggerAction(this);
+            sendToVoid(goal);
+            goal.triggerAction(this, frogger);
         }
 
         for ( Voiture voit : voitureList )
         {
-            if ( frogger.Collides(voit) )
+            if ( frogger.collides(voit) )
             {
-                ((Itriggerable)voit).triggerAction(this);
+                ((Itriggerable)voit).triggerAction(this, frogger);
             }
         }
     }
@@ -619,7 +623,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         for ( Voiture voit : voitureList )
         {
-            voit.Move(DOT_SIZE, this);
+            voit.move(DOT_SIZE, this);
 
             switch (voit.getDirection())
             {
@@ -635,7 +639,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     }
 
     //Met une entité dans le void où elle est sensée ne plus être utilisée
-    public void SendToVoid(Entity victim)
+    public void sendToVoid(Entity victim)
     {
         victim.setPosX(VOID_X);
         victim.setPosY(VOID_Y);
@@ -672,7 +676,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
     }
 
     //retourne frogger
-    //TODO indiquer other sur iTriggerable
     public Frog getFrogger()
     {
         return frogger;
@@ -702,7 +705,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         for ( Tronc tron : troncList )
         {
-            if ( ent.Collides(tron) ) return true;
+            if ( ent.collides(tron) ) return true;
         }
 
         return false;
@@ -713,7 +716,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         for ( Entity obs : obstacleList )
         {
-            if ( ent.Collides(obs) ) return true;
+            if ( ent.collides(obs) ) return true;
         }
 
         return false;
@@ -724,28 +727,39 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         do
         {
-            ent.setPosX(GetRandomXCoordinate());
-            ent.setPosY(GetRandomYCoordinate());
+            ent.setPosX(getRandomXCoordinate());
+            ent.setPosY(getRandomYCoordinate());
         } 
-        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.Collides(goal) || onObstacle(ent) );
+        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.collides(goal) || onObstacle(ent) );
     }
 
     //retourne une coordonée aléatoire sur la largeur
-    private int GetRandomXCoordinate() 
+    private int getRandomXCoordinate() 
     {
         int r = (int) (Math.random() * (GRID_WIDTH - 1));
         return (r * DOT_SIZE);
     }
 
     //retourne une coordonée aléatoire sur la hauteur, en prenant compte du HUD
-    private int GetRandomYCoordinate() 
+    private int getRandomYCoordinate() 
     {
         int r = (int) (Math.random() * (GRID_HEIGHT - 1)) * DOT_SIZE;
         return HUD_HEIGHT + r;
     }
+
+    //retourne une vitesse aléatoire basée sur l'information du niveau
+    public double getRandomSpeed()
+    {
+        return LEVELS[level].getSpeedRange() * Math.random() + LEVELS[level].getMinSpeed();
+    }
+
+    public int getRandomCarDirection()
+    {
+        return (int)(Math.random()*2) > 0 ? RIGHT : LEFT;
+    }
     
     //retourne une voiture de type aléatoire en fonction des chances indiquées par le niveau, prends les paramêtres pour le constructeur de la voiture
-    public Voiture GetRandomCar(int posX, int posY, int width, int height, int direction, double speed)
+    public Voiture getRandomCar(int posX, int posY, int width, int height, int direction, double speed)
     {
         int sum = 0, rand = -1, type = -1;
         boolean chosen = false;
@@ -781,7 +795,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
                 break;
 
             case 2:
-                voit = new Pinky(posX, posY, width, height, direction, speed);
+                voit = new Pinky(posX, posY, width, height, direction, LEVELS[level].getMinSpeed(), LEVELS[level].getMinSpeed() + LEVELS[level].getSpeedRange());
                 break;
 
             case 3:
@@ -810,7 +824,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             if ( frogger.getDirection() == RIGHT ) frogger.setPosX(frogger.getPosX() + DOT_SIZE);
             alignX(frogger);
         }
-        else frogger.Move(DOT_SIZE, this);
+        else frogger.move(DOT_SIZE, this);
 
         //collision avec les bords de l'écran
         if (frogger.getPosY() + frogger.getHeight() >= W_HEIGHT) {
@@ -832,7 +846,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         //collision avec les buissons (et autres obstacles)
         for ( Entity obs : obstacleList )
         {
-            if ( frogger.Collides(obs) ) 
+            if ( frogger.collides(obs) ) 
             {
                 switch ( frogger.getDirection() )
                 {

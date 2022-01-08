@@ -11,12 +11,12 @@ public class Clyde extends Voiture
     }
 
     @Override
-    public void Move(int distance, Board board)
+    public void move(int distance, Board board)
     {
         //ne change de direction/vitesse seulement si elle est encore en jeu
         if ( Math.random() < SPEED_CHANGE_CHANCE && getDirection() != STOP ) 
         {
-            setSpeed( Math.random()/2 + 0.25 );//TODO random speed
+            setSpeed( board.getRandomSpeed() );
         }
         
         if ( Math.random() < DIRECTION_CHANGE_CHANCE && getDirection() != STOP ) 
@@ -25,7 +25,7 @@ public class Clyde extends Voiture
             else setDirection(LEFT);
         }
 
-        super.Move(distance, board);
+        super.move(distance, board);
     }
 
     @Override

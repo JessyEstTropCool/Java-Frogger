@@ -23,13 +23,13 @@ public abstract class Entity
     }
 
     //vérifie une collision avec un point (X; Y)
-    public boolean Collides(int X, int Y)
+    public boolean collides(int X, int Y)
     {
         return X >= posX && X < posX + width && Y >= posY && Y < posY + height;
     }
 
     //vérifie une collision avec une autre entité ent
-    public boolean Collides(Entity ent)
+    public boolean collides(Entity ent)
     {
         return posX < ent.posX + ent.width 
         && posX + width > ent.posX

@@ -9,7 +9,7 @@ public class Coin extends Entity implements Itriggerable
     public String getType() { return "Coin"; }
 
     @Override
-    public void triggerAction(Board board)
+    public void triggerAction(Board board, Entity other)
     {
         board.incScore(1);
         board.decCoinCount();

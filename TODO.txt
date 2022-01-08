@@ -2,14 +2,15 @@
 - diff images de bushs V
 - bouger la coll des bush du frog au board V
 - bouger getRandomCar au board V
-- se poser des questions sur l'alignement ~
+- se poser des questions sur l'alignement V 
 - Encapsulation sur Level.java V
-- les commantaires !!!!!!!!!!
-- Nettoyez le code
-- Tester sur Linux
+- les commantaires !!!!!!!!!! V
+- Nettoyez le code V
+- Tester sur Linux V
 
 --BASE FINIE--
 
-- "TODO skip ligne de goal et start" a considerer pas obligatoire
+- "TODO skip ligne de goal et start" a considerer pas obligatoire X
 - Time bonus
 - Mieux afficher les bonus attribués
+- + de niveau

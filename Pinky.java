@@ -1,21 +1,22 @@
 //Voiture mauve, change de vitesse en fonction du nombre de pièces collectées
 public class Pinky extends Voiture
 {
-    private static final double MIN_SPEED = 0.25;
-    private double fullSpeed;
+    private final double MIN_SPEED;
+    private final double FULL_SPEED;
 
-    public Pinky(int posX, int posY, int width, int height, int direction, double speed)
+    public Pinky(int posX, int posY, int width, int height, int direction, double minSpeed, double maxSpeed)
     {
-        super(posX, posY, width, height, direction, MIN_SPEED);
-        fullSpeed = speed;
+        super(posX, posY, width, height, direction, minSpeed);
+        MIN_SPEED = minSpeed;
+        FULL_SPEED = maxSpeed;
     }
 
     @Override
-    public void Move(int distance, Board board)
+    public void move(int distance, Board board)
     {
-        setSpeed(board.getCompletion() * (fullSpeed - MIN_SPEED) + MIN_SPEED);
+        setSpeed(board.getCompletion() * (FULL_SPEED - MIN_SPEED) + MIN_SPEED);
 
-        super.Move(distance, board);
+        super.move(distance, board);
     }
 
     @Override

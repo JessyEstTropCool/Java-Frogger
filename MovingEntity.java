@@ -19,5 +19,5 @@ public abstract class MovingEntity extends Entity implements Idirectional
     public void setSpeed(double speed) { this.speed = speed; }
 
     public abstract String getType();
-    public abstract void Move(int distance, Board board);
+    public abstract void move(int distance, Board board);
 }

@@ -21,8 +21,8 @@ public class Pill extends Entity implements Itriggerable
     public String getType() { return "Pill" + pierre; }
 
     @Override
-    public void triggerAction(Board board)
+    public void triggerAction(Board board, Entity other)
     {
-        board.getFrogger().triggerInvincible(INVINCIBLE_TIME, SPEED_FACTOR);
+        ((Frog)other).triggerInvincible(INVINCIBLE_TIME, SPEED_FACTOR);
     }
 }

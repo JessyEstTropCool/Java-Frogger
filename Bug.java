@@ -10,7 +10,7 @@ public abstract class Bug extends Entity implements Itriggerable
     }
 
     @Override
-    public void triggerAction(Board board)
+    public void triggerAction(Board board, Entity other)
     {
         board.incScore(points);
     }

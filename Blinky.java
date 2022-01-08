@@ -9,9 +9,9 @@ public class Blinky extends Voiture
     }
 
     @Override
-    public void Move(int distance, Board board)
+    public void move(int distance, Board board)
     {
-        super.Move(distance, board);
+        super.move(distance, board);
 
         if ( getDirection() != STOP )
         {
