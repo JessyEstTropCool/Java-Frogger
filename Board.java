@@ -28,6 +28,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final int START_LIVES = 3;
     private final int LIVES_POINTS = 50;
     private final int DELAY = 100;
+    private final int INITIAL_TIME_BONUS = 60;
+    private final int TIME_BONUS_PENALTY = 1;
 
     private final int GOAL_BAND_HEIGHT = 3;
     private final int GOAL_BAND_POS = 8;
@@ -143,7 +145,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
     private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
 
-    private int coinCount;
     private ArrayList<Entity> collectibleList;
     private ArrayList<Voiture> voitureList;
     private ArrayList<Tronc> troncList;
@@ -163,6 +164,9 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
     private int highScore = 0;
     private int score = 0;
+    private int secondsCounter = 0;
+    private int timeBonus;
+    private int coinCount;
 
     public Board() 
     {        
@@ -322,7 +326,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             g.setColor(FORECOLOR);
 
             g.drawString("Score : " + score, 0, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
-            g.drawString("Niveau " + (level + 1), (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X")) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
+            g.drawString("Niveau " + (level + 1) + " - Bonus : " + timeBonus, (B_WIDTH - getFontMetrics(hudFont).stringWidth("Niveau X - Bonus : " + INITIAL_TIME_BONUS)) / 2, (int)(hudFont.getSize() * VERT_CENTER_TEXT));
 
             for ( int compt = 0 ; compt < START_LIVES ; compt++ )
             {
@@ -432,6 +436,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
         frogger.setDirection(UP);
         
         coinCount = LEVELS[level].getCoins();
+        timeBonus = INITIAL_TIME_BONUS;
+        secondsCounter = 0;
         collectibleList = new ArrayList<Entity>();
         voitureList = new ArrayList<Voiture>();
         troncList = new ArrayList<Tronc>();
@@ -535,6 +541,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
         gameTimer.stop();
 
         frogger.resetInvincible();
+        score += timeBonus;
 
         level++;
 
@@ -590,6 +597,15 @@ public class Board extends JPanel implements ActionListener, Idirectional
         {
             checkCollectibles();
             moveVoiture();
+            secondsCounter += DELAY;
+
+            if ( secondsCounter >= 1000 && timeBonus > 0 )
+            {
+                secondsCounter -= 1000;
+                timeBonus -= TIME_BONUS_PENALTY;
+
+                if ( timeBonus <= 0 ) timeBonus = 0;
+            }
         }
 
         repaint();

@@ -11,6 +11,6 @@
 --BASE FINIE--
 
 - "TODO skip ligne de goal et start" a considerer pas obligatoire X
-- Time bonus
-- Mieux afficher les bonus attribués
-- + de niveau
+- Time bonus V
+- Mieux afficher les bonus attribués X
+- + de niveau V
