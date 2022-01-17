@@ -38,8 +38,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
     private final int TRONC_GRID_WIDTH = 3;
 
-    private final int WATER_EDGE_HEIGHT = 5;
-    private final int FOAM_LINE_HEIGHT = 2;
+    private final int WATER_EDGE_HEIGHT = DOT_SIZE / 4;
+    private final int FOAM_LINE_HEIGHT = DOT_SIZE / 10;
     private final int ROAD_SEPARATOR_OFFSET = DOT_SIZE / (2 - GRID_WIDTH % 2);
     private final int ROAD_SEPARATOR_HEIGHT = 2;
     private final double VERT_CENTER_TEXT = 0.75;
@@ -104,7 +104,8 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "blueCarL.png",
         "blueCarR.png",
         "orangeCarL.png",
-        "orangeCarR.png"
+        "orangeCarR.png",
+        "OVNI.png"
     };
 
     private final String[] IMAGE_KEYS = { 
@@ -140,13 +141,14 @@ public class Board extends JPanel implements ActionListener, Idirectional
         "Inky"+LEFT,
         "Inky"+RIGHT,
         "Clyde"+LEFT,
-        "Clyde"+RIGHT
+        "Clyde"+RIGHT,
+        "Ovni"
     };
 
     private final Frog frogger = new Frog(0, 0, DOT_SIZE, DOT_SIZE, UP, 1);
 
     private ArrayList<Entity> collectibleList;
-    private ArrayList<Voiture> voitureList;
+    private ArrayList<MovingEntity> voitureList;
     private ArrayList<Tronc> troncList;
     private ArrayList<Entity> obstacleList;
     private Goal goal;
@@ -155,6 +157,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private int lives = START_LIVES;
     private boolean inGame = false;
     private boolean lost = false;
+    private boolean noMoreTime = false;
 
     private Timer gameTimer = new Timer(DELAY, this);;
     private Timer promptTimer;
@@ -277,23 +280,25 @@ public class Board extends JPanel implements ActionListener, Idirectional
             //On affiche toutes les entités
             for ( Entity obs : obstacleList )
             {
-                g.drawImage(spritesMap.get(obs.getType()), obs.getPosX(), obs.getPosY(), this);
+                g.drawImage(spritesMap.get(obs.getType()), obs.getDisplayX(), obs.getDisplayY(), this);
             }
 
             for ( Tronc tron : troncList )
             {
-                if (tron.collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getPosX(), tron.getPosY(), this);
-                else g.drawImage(spritesMap.get(tron.getType()), tron.getPosX(), tron.getPosY(), this);
+                if (tron.collides(frogger)) g.drawImage(spritesMap.get(tron.getType()+"Eau"), tron.getDisplayX(), tron.getDisplayY(), this);
+                else g.drawImage(spritesMap.get(tron.getType()), tron.getDisplayX(), tron.getDisplayY(), this);
             }
+            
+            g.drawImage(spritesMap.get( frogger.getType() ), frogger.getDisplayX(), frogger.getDisplayY(), this);
 
-            for ( Voiture voit : voitureList )
+            for ( MovingEntity voit : voitureList )
             {
-                g.drawImage(spritesMap.get(voit.getType()), voit.getPosX(), voit.getPosY(), this);
+                g.drawImage(spritesMap.get(voit.getType()), voit.getDisplayX(), voit.getDisplayY(), this);
             }
 
             for ( Entity coll : collectibleList )
             {
-                g.drawImage(spritesMap.get(coll.getType()), coll.getPosX(), coll.getPosY(), this);
+                g.drawImage(spritesMap.get(coll.getType()), coll.getDisplayX(), coll.getDisplayY(), this);
             }
 
             //ligne du goal
@@ -312,8 +317,6 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             g.drawImage(spritesMap.get(goal.getType()), 0, HUD_HEIGHT, this);
             g.drawImage(spritesMap.get(goal.getType()), B_WIDTH - DOT_SIZE, HUD_HEIGHT, this);
-            
-            g.drawImage(spritesMap.get( frogger.getType() ), frogger.getPosX(), frogger.getPosY(), this);
 
             //HUD, affiché en dernier pour qu'il soit toujours au dessus
 
@@ -438,8 +441,9 @@ public class Board extends JPanel implements ActionListener, Idirectional
         coinCount = LEVELS[level].getCoins();
         timeBonus = INITIAL_TIME_BONUS;
         secondsCounter = 0;
+        noMoreTime = false;
         collectibleList = new ArrayList<Entity>();
-        voitureList = new ArrayList<Voiture>();
+        voitureList = new ArrayList<MovingEntity>();
         troncList = new ArrayList<Tronc>();
         obstacleList = new ArrayList<Entity>();
 
@@ -599,12 +603,18 @@ public class Board extends JPanel implements ActionListener, Idirectional
             moveVoiture();
             secondsCounter += DELAY;
 
-            if ( secondsCounter >= 1000 && timeBonus > 0 )
+            if ( !noMoreTime && secondsCounter >= 1000 && timeBonus > 0 )
             {
                 secondsCounter -= 1000;
                 timeBonus -= TIME_BONUS_PENALTY;
 
-                if ( timeBonus <= 0 ) timeBonus = 0;
+                if ( timeBonus <= 0 ) 
+                {
+                    timeBonus = 0;
+                    noMoreTime = true;
+
+                    voitureList.add(new Ovni(B_WIDTH / 2, W_HEIGHT + 2 * DOT_SIZE, DOT_SIZE, DOT_SIZE, LEVELS[level].getMinSpeed()));
+                }
             }
         }
 
@@ -633,7 +643,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             goal.triggerAction(this, frogger);
         }
 
-        for ( Voiture voit : voitureList )
+        for ( MovingEntity voit : voitureList )
         {
             if ( frogger.collides(voit) )
             {
@@ -645,7 +655,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     //Fait avancer toutes les voitures et les ramènes de l'autre coté de l'écran si nécéssaire
     private void moveVoiture()
     {
-        for ( Voiture voit : voitureList )
+        for ( MovingEntity voit : voitureList )
         {
             voit.move(DOT_SIZE, this);
 

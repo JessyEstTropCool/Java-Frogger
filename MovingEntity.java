@@ -4,12 +4,17 @@ public abstract class MovingEntity extends Entity implements Idirectional
     private int direction;
     private double speed;
 
-    public MovingEntity(int posX, int posY, int width, int height, int direction, double speed)
+    public MovingEntity(int posX, int posY, int width, int height, int offsetX, int offsetY, int direction, double speed)
     {
-        super(posX, posY, width, height);
+        super(posX, posY, width, height, offsetX, offsetY);
 
         this.direction = direction;
         this.speed = speed;
+    }
+
+    public MovingEntity(int posX, int posY, int width, int height, int direction, double speed)
+    {
+        this(posX, posY, width, height, 0, 0, direction, speed);
     }
 
     public int getDirection() { return direction; }
@@ -18,6 +23,5 @@ public abstract class MovingEntity extends Entity implements Idirectional
     public double getSpeed() { return speed; }
     public void setSpeed(double speed) { this.speed = speed; }
 
-    public abstract String getType();
     public abstract void move(int distance, Board board);
 }
