@@ -13,6 +13,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Scanner;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -21,6 +25,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
     private final char ROAD = 'R', GRASS = 'G', WATER = 'W';
 
     private final String MEDIA_PATH = "20x20/";
+    private final String SCORE_FILE = "highScore.txt";
     private final int DOT_SIZE = 20;
     private final int GRID_WIDTH = 30;
     private final int GRID_HEIGHT = 30;
@@ -183,7 +188,10 @@ public class Board extends JPanel implements ActionListener, Idirectional
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, W_HEIGHT));
+
         frogger.addListener(repaint);
+        highScore = readScore();
+
         loadImages();
         initGame();
     }
@@ -401,7 +409,11 @@ public class Board extends JPanel implements ActionListener, Idirectional
     {
         public void actionPerformed(ActionEvent e)
         {
-            if ( score > highScore ) highScore = score;
+            if ( score > highScore ) 
+            {
+                highScore = score;
+                writeScore();
+            }
 
             score = 0;
             level = 0;
@@ -593,6 +605,46 @@ public class Board extends JPanel implements ActionListener, Idirectional
         }
     }
 
+    //lit le score a partir du fichier spécifié dans SCORE_FILE
+    private int readScore()
+    {
+        int resultScore = 0;
+
+        try 
+        {
+            File scoreFile = new File(SCORE_FILE);
+            Scanner scoreReader = new Scanner(scoreFile);
+
+            if (scoreReader.hasNextLine()) 
+            {
+                resultScore = Integer.parseInt(scoreReader.nextLine(), 10);
+            }
+
+            scoreReader.close();
+        } 
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+        }
+
+        return resultScore;
+    }
+
+    //écrit le score dans le fichier spécifié dans SCORE_FILE
+    private void writeScore()
+    {
+        try 
+        {
+            FileWriter scoreWriter = new FileWriter(SCORE_FILE);
+            scoreWriter.write("" + highScore);
+            scoreWriter.close();
+        } 
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+        }
+    }
+
     //listener du gameTimer, bouge les voiture
     @Override
     public void actionPerformed(ActionEvent e) 
@@ -613,7 +665,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
                     timeBonus = 0;
                     noMoreTime = true;
 
-                    voitureList.add(new Ovni(B_WIDTH / 2, W_HEIGHT + 2 * DOT_SIZE, DOT_SIZE, DOT_SIZE, LEVELS[level].getMinSpeed()));
+                    voitureList.add(new Ovni(B_WIDTH / 2, W_HEIGHT + 2 * DOT_SIZE, DOT_SIZE, DOT_SIZE, LEVELS[level].getMinSpeed() + LEVELS[level].getSpeedRange()));
                 }
             }
         }
