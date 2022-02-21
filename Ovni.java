@@ -9,40 +9,32 @@ public class Ovni extends MovingEntity implements Itriggerable
     {
         if ( getDirection() != STOP )
         {
+			//on calcule à quel point l'ovni va dans chaque direction
+			double dirX = board.getFrogger().getPosX() - getPosX() , dirY = board.getFrogger().getPosY() - getPosY(), dirTot = Math.abs(dirX) + Math.abs(dirY);
+			
+			dirX /= dirTot;
+			dirY /= dirTot;
+			
             //s'aligne sur frogger s'il est assez proche et qu'il est sur la route
-            if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() ) 
+            if ( Math.abs(getPosY() - board.getFrogger().getPosY()) < distance * getSpeed() * dirY ) 
             {
                 setPosY(board.getFrogger().getPosY());
             }
             else
             {
                 //s'approche de frogger et s'aligne sur la route s'il est arrivé trop loin
-                if ( board.getFrogger().getPosY() > getPosY() ) 
-                {
-                    setPosY(getPosY() + (int)(distance * getSpeed()));
-                }
-                else if ( board.getFrogger().getPosY() < getPosY() ) 
-                {
-                    setPosY(getPosY() - (int)(distance * getSpeed()));
-                }
+                setPosY(getPosY() + (int)(distance * getSpeed() * dirY));
             }
 
             //s'aligne sur frogger s'il est assez proche et qu'il est sur la route
-            if ( Math.abs(getPosX() - board.getFrogger().getPosX()) < distance * getSpeed() ) 
+            if ( Math.abs(getPosX() - board.getFrogger().getPosX()) < distance * getSpeed() * dirX ) 
             {
                 setPosX(board.getFrogger().getPosX());
             }
             else
             {
                 //s'approche de frogger et s'aligne sur la route s'il est arrivé trop loin
-                if ( board.getFrogger().getPosX() > getPosX() ) 
-                {
-                    setPosX(getPosX() + (int)(distance * getSpeed()));
-                }
-                else if ( board.getFrogger().getPosX() < getPosX() ) 
-                {
-                    setPosX(getPosX() - (int)(distance * getSpeed()));
-                }
+                setPosX(getPosX() + (int)(distance * getSpeed() * dirX));
             }
         }
     }

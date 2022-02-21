@@ -657,8 +657,11 @@ public class Board extends JPanel implements ActionListener, Idirectional
 
             if ( !noMoreTime && secondsCounter >= 1000 && timeBonus > 0 )
             {
-                secondsCounter -= 1000;
-                timeBonus -= TIME_BONUS_PENALTY;
+                while ( secondsCounter >= 1000 )
+                {
+                    secondsCounter -= 1000;
+                    timeBonus -= TIME_BONUS_PENALTY;
+                }
 
                 if ( timeBonus <= 0 ) 
                 {
@@ -808,6 +811,17 @@ public class Board extends JPanel implements ActionListener, Idirectional
         return false;
     }
 
+    //test si une entité ent se trouve dans un collectible
+    public boolean onCollectible(Entity ent)
+    {
+        for ( Entity obs : collectibleList )
+        {
+            if ( ent.collides(obs) ) return true;
+        }
+
+        return false;
+    }
+
     //place une entité ent sur un endroit viable
     private void placeEntity(Entity ent)
     {
@@ -816,7 +830,7 @@ public class Board extends JPanel implements ActionListener, Idirectional
             ent.setPosX(getRandomXCoordinate());
             ent.setPosY(getRandomYCoordinate());
         } 
-        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.collides(goal) || onObstacle(ent) );
+        while ( (!onTronc(ent) && isWater(ent.getPosY())) || ent.collides(goal) || onObstacle(ent) || onCollectible(ent) );
     }
 
     //retourne une coordonée aléatoire sur la largeur
