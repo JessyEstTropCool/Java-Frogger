@@ -4,3 +4,7 @@
 Frogger-inspired game using a pre-existing Snake game as a base
 
 Made with Java Swing
+
+## Exemple image
+
+![Exemple](/Rapport/theactualgame.png)
